@@ -379,4 +379,15 @@ class LoginModel
     {
         return Session::userIsLoggedIn();
     }
+
+    /**
+     * Returns wether logged in user is admin
+     *
+     * @return bool user's admin status
+     */
+    public static function isUserAdmin(){
+        if(!Session::userIsLoggedIn())
+            return false;
+        return Session::get('user_account_type')==7;
+    }
 }

@@ -23,10 +23,15 @@ class RegistrationModel
         $user_password_repeat = Request::post('user_password_repeat');
 
         // stop registration flow if registrationInputValidation() returns false (= anything breaks the input check rules)
-        $validation_result = self::registrationInputValidation(Request::post('captcha'), $user_name, $user_password_new, $user_password_repeat, $user_email, $user_email_repeat);
+        $validation_result = self::registrationInputValidation($user_name, $user_password_new, $user_password_repeat, $user_email, $user_email_repeat);
         if (!$validation_result) {
             return false;
         }
+
+        if(empty($user_email))
+            $user_email = "";
+
+        
 
         // crypt the password with the PHP 5.5's password_hash() function, results in a 60 character hash string.
         // @see php.net/manual/en/function.password-hash.php for more, especially for potential options
@@ -42,10 +47,11 @@ class RegistrationModel
         }
 
         // check if email already exists
-        if (UserModel::doesEmailAlreadyExist($user_email)) {
-            Session::add('feedback_negative', Text::get('FEEDBACK_USER_EMAIL_ALREADY_TAKEN'));
-            $return = false;
-        }
+        if($user_email)
+            if (UserModel::doesEmailAlreadyExist($user_email)) {
+                Session::add('feedback_negative', Text::get('FEEDBACK_USER_EMAIL_ALREADY_TAKEN'));
+                $return = false;
+            }
 
         // if Username or Email were false, return false
         if (!$return) return false;
@@ -67,16 +73,17 @@ class RegistrationModel
             return false;
         }
 
+        RegistrationModel::verifyNewUser($user_id, $user_activation_hash);
         // send verification email
-        if (self::sendVerificationEmail($user_id, $user_email, $user_activation_hash)) {
-            Session::add('feedback_positive', Text::get('FEEDBACK_ACCOUNT_SUCCESSFULLY_CREATED'));
-            return true;
-        }
+        // if (self::sendVerificationEmail($user_id, $user_email, $user_activation_hash)) {
+        //     Session::add('feedback_positive', Text::get('FEEDBACK_ACCOUNT_SUCCESSFULLY_CREATED'));
+        return true;
+        // }
 
         // if verification email sending failed: instantly delete the user
-        self::rollbackRegistrationByUserId($user_id);
-        Session::add('feedback_negative', Text::get('FEEDBACK_VERIFICATION_MAIL_SENDING_FAILED'));
-        return false;
+        // self::rollbackRegistrationByUserId($user_id);
+        // Session::add('feedback_negative', Text::get('FEEDBACK_VERIFICATION_MAIL_SENDING_FAILED'));
+        // return false;
     }
 
     /**
@@ -91,18 +98,20 @@ class RegistrationModel
      *
      * @return bool
      */
-    public static function registrationInputValidation($captcha, $user_name, $user_password_new, $user_password_repeat, $user_email, $user_email_repeat)
+    public static function registrationInputValidation($user_name, $user_password_new, $user_password_repeat, $user_email, $user_email_repeat)
     {
         $return = true;
 
         // perform all necessary checks
-        if (!CaptchaModel::checkCaptcha($captcha)) {
-            Session::add('feedback_negative', Text::get('FEEDBACK_CAPTCHA_WRONG'));
-            $return = false;
-        }
-
+        // if (!CaptchaModel::checkCaptcha($captcha)) {
+        //     Session::add('feedback_negative', Text::get('FEEDBACK_CAPTCHA_WRONG'));
+        //     $return = false;
+        // }
+        if(!empty($user_email) OR !empty($user_email))
+            if(!self::validateUserEmail($user_email, $user_email_repeat))
+                $return = false;
         // if username, email and password are all correctly validated, but make sure they all run on first sumbit
-        if (self::validateUserName($user_name) AND self::validateUserEmail($user_email, $user_email_repeat) AND self::validateUserPassword($user_password_new, $user_password_repeat) AND $return) {
+        if (self::validateUserName($user_name) AND self::validateUserPassword($user_password_new, $user_password_repeat) AND $return) {
             return true;
         }
 
