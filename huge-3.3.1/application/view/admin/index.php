@@ -9,11 +9,11 @@
         <h3>What happens here ?</h3>
 
         <div>
-            This controller/action/view shows a list of all users in the system. with the ability to soft delete a user
-            or suspend a user.
+            This controller/action/view shows a list of all users in the system. with the ability to soft delete a user,
+            suspend a user or change a users role (account type).
         </div>
         <div>
-            <table class="overview-table">
+            <table class="overview-table" id="table_users">
                 <thead>
                 <tr>
                     <td>Id</td>
@@ -22,6 +22,7 @@
                     <td>User's email</td>
                     <td>Activated ?</td>
                     <td>Link to user's profile</td>
+                    <td>Role</td>
                     <td>suspension Time in days</td>
                     <td>Soft delete</td>
                     <td>Submit</td>
@@ -42,6 +43,15 @@
                             <a href="<?= Config::get('URL') . 'profile/showProfile/' . $user->user_id; ?>">Profile</a>
                         </td>
                         <form action="<?= config::get("URL"); ?>admin/actionAccountSettings" method="post">
+                            <td>
+                                <select name="user_role">
+                                    <?php foreach ($this->roles as $role) { ?>
+                                        <option value="<?= $role->id ?>"<?php if($user->user_role_name==$role->role_name) echo ' selected="selected"' ?>>
+                                            <?= $role->role_name ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
+                            </td>
                             <td><input type="number" name="suspension" /></td>
                             <td><input type="checkbox" name="softDelete" <?php if ($user->user_deleted) { ?> checked <?php } ?> /></td>
                             <td>
@@ -55,3 +65,6 @@
         </div>
     </div>
 </div>
+<script>
+    new DataTable('#table_users');
+</script>

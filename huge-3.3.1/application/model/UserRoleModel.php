@@ -62,4 +62,29 @@ class UserRoleModel
 
         return false;
     }
+
+    /**
+     * Gets an Array that contains all roles defined in the Database
+     * 
+     * @return array All roles
+     */
+    public static function getAllUserRoles(){
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $sql = "SELECT * FROM user_roles";
+
+        $query = $database->prepare($sql);
+        $query->execute();
+
+        $all_roles = array();
+
+        foreach ($query->fetchAll() as $roles) {
+
+            $all_roles[$roles->id] = new stdClass();
+            $all_roles[$roles->id]->id = $roles->id;
+            $all_roles[$roles->id]->role_name = $roles->role_name;
+        }
+
+        return $all_roles;
+    }
 }

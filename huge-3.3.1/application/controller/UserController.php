@@ -23,12 +23,13 @@ class UserController extends Controller
      */
     public function index()
     {
+        $roles = UserRoleModel::getAllUserRoles();
         $this->View->render('user/index', array(
             'user_name' => Session::get('user_name'),
             'user_email' => Session::get('user_email'),
             'user_gravatar_image_url' => Session::get('user_gravatar_image_url'),
             'user_avatar_file' => Session::get('user_avatar_file'),
-            'user_account_type' => Session::get('user_account_type')
+            'user_account_type' => $roles[Session::get('user_account_type')]->role_name
         ));
     }
 

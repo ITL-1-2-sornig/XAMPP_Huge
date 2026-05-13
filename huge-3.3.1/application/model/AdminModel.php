@@ -71,6 +71,33 @@ class AdminModel
     }
 
     /**
+     * Changes users Account Type
+     * 
+     * @param $roleId
+     * @param $userAccountType
+     */
+    public static function setAccountType($userAccountType, $userId)
+    {
+        // Prevent to change role of own account
+        if ($userId == Session::get('user_id')) {
+            Session::add('feedback_negative', Text::get('FEEDBACK_ACCOUNT_TYPE_CANT_CHANGE_OWN'));
+            return false;
+        }
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $query = $database->prepare("UPDATE users SET user_account_type = :user_account_type  WHERE user_id = :user_id LIMIT 1");
+        $query->execute(array(
+                ':user_account_type' => $userAccountType,
+                ':user_id' => $userId
+        ));
+        if ($query->rowCount() == 1) {
+            Session::add('feedback_positive', Text::get('FEEDBACK_ACCOUNT_TYPE_CHANGE_SUCCESSFUL'));
+            return true;
+        }
+    }
+
+    /**
      * Kicks the selected user out of the system instantly by resetting the user's session.
      * This means, the user will be "logged out".
      *

@@ -67,6 +67,7 @@ return array(
     "FEEDBACK_PASSWORD_CURRENT_INCORRECT" => "Current password entered was incorrect.",
     "FEEDBACK_ACCOUNT_TYPE_CHANGE_SUCCESSFUL" => "Account type change successful",
     "FEEDBACK_ACCOUNT_TYPE_CHANGE_FAILED" => "Account type change failed",
+    "FEEDBACK_ACCOUNT_TYPE_CANT_CHANGE_OWN" => "You can not change the role of your own account.",
     "FEEDBACK_NOTE_CREATION_FAILED" => "Note creation failed.",
     "FEEDBACK_NOTE_EDITING_FAILED" => "Note editing failed.",
     "FEEDBACK_NOTE_DELETION_FAILED" => "Note deletion failed.",
