@@ -52,7 +52,7 @@
                                     <?php } ?>
                                 </select>
                             </td>
-                            <td><input type="number" name="suspension" /></td>
+                            <td><input type="number" name="suspension" min="0" max="999999"/></td> <!-- limited max Input to reduce size of the Input field-->
                             <td><input type="checkbox" name="softDelete" <?php if ($user->user_deleted) { ?> checked <?php } ?> /></td>
                             <td>
                                 <input type="hidden" name="user_id" value="<?= $user->user_id; ?>" />
