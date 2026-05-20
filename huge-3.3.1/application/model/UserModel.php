@@ -342,4 +342,20 @@ class UserModel
         // return one row (we only have one result or nothing)
         return $query->fetch();
     }
+    /**
+     * Gets the user's name by user's id
+     *
+     * @param $user_id
+     *
+     * @return stdClass Returns user's name
+     */
+    public static function getUserNameByID($user_id)
+    {
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $query = $database->prepare("SELECT user_name FROM users WHERE user_id = :user_id;");
+        $query->execute(array(":user_id" => $user_id));
+
+        return $query->fetch()->user_name;
+    }
 }
