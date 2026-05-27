@@ -21,6 +21,7 @@
                     <td>Activated ?</td>
                     <td>Link to user's profile</td>
                     <td>Role</td>
+                    <td>Chat</td>
                 </tr>
                 </thead>
                 <?php foreach ($this->users as $user) { ?>
@@ -38,6 +39,20 @@
                             <a href="<?= Config::get('URL') . 'profile/showProfile/' . $user->user_id; ?>">Profile</a>
                         </td>
                         <td><?= $user->user_role_name; ?></td>
+                        <td>
+                            <?php if ($user->user_id!=Session::get('user_id')) { ?>
+                                <form action="<?= Config::get('URL') . 'message/index/' . $user->user_id; ?>">
+                                    <Button type="Submit" class="<?php echo $this->unread[$user->user_id]->unread==0? "message-counter-no-new":"message-counter-new" ?>">
+                                        <?php
+                                        if(!$this->unread[$user->user_id]->hasChat)
+                                            echo "Chat Starten";
+                                        else
+                                            echo $this->unread[$user->user_id]->unread . " ungelesene Nachrichten";
+                                        ?>
+                                    </Button>
+                                </form>
+                            <?php } ?>
+                        </td>
                     </tr>
                 <?php } ?>
             </table>

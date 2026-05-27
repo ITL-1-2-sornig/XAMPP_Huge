@@ -8,22 +8,31 @@
         <div>
             This controller/action/view shows a list of all messages between you and <?= $this->reciever; ?>
         </div>
-        <div>
-            <table class="overview-table" id="table_messages">
-                <thead>
-                <tr>
-                    <td><?= $this->reciever ?></td>
-                    <td><?= Session::get('user_name'); ?></td>
-                </tr>
-                <?php foreach($this->messages as $message) {?>
-                    <td><?php if($message->sender != Session::get('user_id')) echo $message->text; ?></td>
-                    <td><?php if($message->sender == Session::get('user_id')) echo $message->text; ?></td>
+        <div id="chat" class="chat-window">
+            <?php foreach($this->messages as $message) {?>
+                <?php if($message->sender != Session::get('user_id')) { ?>
+                    <div class="chat-bubble-container-left">
+                        <div class="chat-bubble <?php echo $message->seen? "chat-seen": "chat-new"?>">
+                            <?= $message->text ?>
+                        </div>
+                    </div>
+                <?php } else { ?>
+                    <div class="chat-bubble-container-right">
+                        <div class="chat-bubble chat-sent">
+                            <?= $message->text ?>
+                        </div>
+                    </div>
                 <?php } ?>
-                </thead>
-            </table>
+            <?php } ?>
         </div>
+        <form method="POST" action="<?= Config::get('URL') . 'message/write/' . $this->reciever_id ; ?>">
+            <textarea name="text" required="True"></textarea>
+            <button type="Submit">
+                Senden
+            </button>
+        </form>
     </div>
 </div>
 <script>
-    //new DataTable('#table_users');
+    
 </script>

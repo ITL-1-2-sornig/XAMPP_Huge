@@ -16,9 +16,19 @@ class MessageController extends Controller
     public function index($user)
     {
         $this->View->render('message/index', array(
-                'messages' => MessageModel::getAllMessagesBetweenUsersLoggedIn($user),
-                'reciever' => UserModel::getUserNameByID($user))
+                'messages'      => MessageModel::getAllMessagesBetweenUsersLoggedIn($user),
+                'reciever'      => UserModel::getUserNameByID($user),
+                'reciever_id'   => $user)
         );
+    }
+
+    /**
+     * This method controls what happens when you write a message to a user
+     */
+    public function write($reciever){
+        $text = $_POST['text'];
+        MessageModel::newMessage(Session::get('user_id'), $reciever, $text);
+        $this->index($reciever);
     }
 
 

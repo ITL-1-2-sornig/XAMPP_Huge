@@ -266,3 +266,53 @@ body {
 .red-text {
     color: red;
 }
+
+/* chat styles */
+.chat-window{
+    border-style: solid;
+    border-color:#d0d0d0;
+    border-radius: 5px;
+    padding-bottom: 30px;
+    padding-top: 30px;
+    padding-left: 10px;
+    padding-right: 10px;
+    overflow-y: scroll;
+    height: 30rem;
+    margin: 15px;
+}
+.chat-bubble{
+    border-radius: 15px;
+    border-style: solid;
+    border-width: 3px;
+    font-size: large;
+    padding: 10px;
+    margin-bottom: 5px;
+}
+.chat-seen{
+    background-color: #bde486;
+    border-color:#507918;
+}
+.chat-new{
+    background-color: #a6d761;
+    border-color:#507918;
+}
+.chat-sent{
+    background-color: #dedede;
+    border-color:#8f8f8f;
+}
+.chat-bubble-container-left{
+    display: flex;
+    justify-content: left;
+    align-items: left;
+}
+.chat-bubble-container-right{
+    display: flex;
+    justify-content: right;
+    align-items: right;
+}
+.message-counter-new{
+    background-color: #c3c1ff;
+}
+.message-counter-no-new{
+    background-color: #e4e4e4;
+}

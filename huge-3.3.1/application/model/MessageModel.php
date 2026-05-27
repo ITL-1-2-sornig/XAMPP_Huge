@@ -52,14 +52,69 @@ class MessageModel
             array_walk_recursive($message, 'Filter::XSSFilter');
 
             $messages[$message->message_id] = new stdClass();
-            $messages[$message->message_id]->id = $message->user_sender;
-            $messages[$message->message_id]->sender = $message->user_reciever;
-            $messages[$message->message_id]->reciever = $message->reciever_name;
+            $messages[$message->message_id]->id = $message->message_id;
+            $messages[$message->message_id]->sender = $message->user_sender;
+            $messages[$message->message_id]->reciever = $message->user_reciever;
             $messages[$message->message_id]->seen = $message->message_seen;
             $messages[$message->message_id]->timestamp = $message->message_timestamp;
-            $messages[$message->message_id]->text = $message->message_text;
+            $messages[$message->message_id]->text = str_replace("\n", "<br>", $message->message_text);
         }
 
         return $messages;
+    }
+
+    /**
+     * Adds new message with specified text from one user to another
+     *
+     * @param $senderID
+     * @param $reciever
+     * @param $text
+     * 
+     */
+    public static function newMessage($senderID, $recieverID, $text){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("INSERT INTO messages (user_sender, user_reciever, message_text)
+            VALUES (:sender, :reciever, :text)");
+        $query->execute(array(
+                ':sender'   => $senderID,
+                ':reciever' => $recieverID,
+                'text'      => $text
+        ));
+
+    }
+
+    /**
+     * Gets number of unread Messages between to logged in user
+     * 
+     * @return array Returns arrray with all user_ids and the number of unread messages
+     * and a boolean indicating if any messages have been sent between them
+     */
+    public static function getNumUnreadMessages(){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $queryusers = $database->prepare("SELECT user_id FROM users");
+        $queryusers->execute(array());
+        $queryMessages = $database->prepare("SELECT user_sender, user_reciever, message_seen
+        FROM messages WHERE user_sender = :user_id OR user_reciever = :user_id");
+
+        $tally = array();
+
+        foreach ($queryusers->fetchAll() as $user) {
+            $tally[$user->user_id] = new stdClass();
+            $tally[$user->user_id]->unread = 0;
+            $tally[$user->user_id]->hasChat = false;
+        }
+
+        $queryMessages->execute(array(
+            ':user_id' => Session::get('user_id')
+        ));
+
+        foreach ($queryMessages->fetchAll() as $message) {
+            if($message->user_sender != Session::get('user_id')){
+                $tally[$message->user_sender]->hasChat = true;
+                if(!$message->message_seen)
+                    $tally[$message->user_sender]->unread ++;
+            }
+        }
+        return $tally;
     }
 }
