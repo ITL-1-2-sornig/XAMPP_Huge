@@ -114,7 +114,7 @@ class MessageModel
                 if(!$message->message_seen)
                     $tally[$message->user_sender]->unread ++;
             }
-            else
+            elseif($message->user_reciever)
                 $tally[$message->user_reciever]->hasChat = true;
         }
         return $tally;

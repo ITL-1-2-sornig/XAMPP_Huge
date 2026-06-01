@@ -40,7 +40,7 @@
                 <textarea calss="message-Input" name="text" required="True"></textarea>
                 <br>
                 <button type="Submit">
-                    Senden
+                    Send
                 </button>
             </form>
     </div>

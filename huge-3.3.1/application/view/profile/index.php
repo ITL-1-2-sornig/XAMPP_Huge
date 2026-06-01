@@ -40,17 +40,20 @@
                         </td>
                         <td><?= $user->user_role_name; ?></td>
                         <td>
-                            <?php if ($user->user_id!=Session::get('user_id')) { ?>
+                            <?php if(Session::userIsLoggedIn()){
+                                if ($user->user_id!=Session::get('user_id')) { ?>
                                 <form action="<?= Config::get('URL') . 'message/index/' . $user->user_id; ?>">
                                     <Button type="Submit" class="<?php echo $this->unread[$user->user_id]->unread==0? "message-counter-no-new":"message-counter-new" ?>">
                                         <?php
                                         if(!$this->unread[$user->user_id]->hasChat)
-                                            echo "Chat Starten";
+                                            echo "Start Chat";
                                         else
-                                            echo $this->unread[$user->user_id]->unread . " ungelesene Nachrichten";
+                                            echo $this->unread[$user->user_id]->unread . " new messages";
                                         ?>
                                     </Button>
                                 </form>
+                            <?php }} else { ?>
+                                logged out
                             <?php } ?>
                         </td>
                     </tr>

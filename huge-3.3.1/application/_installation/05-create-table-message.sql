@@ -1,3 +1,3 @@
-CREATE TABLE `huge`.`messages` (`message_id` INT NOT NULL AUTO_INCREMENT , `user_sender` INT NOT NULL , `user_reciever` INT NOT NULL , `message_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , `message_text` VARCHAR(10000) NOT NULL , `message_seen` BOOLEAN NOT NULL DEFAULT FALSE , PRIMARY KEY (`message_id`)) ENGINE = InnoDB;
+CREATE TABLE `huge`.`messages` (`message_id` INT NOT NULL AUTO_INCREMENT , `user_sender` INT NOT NULL , `user_reciever` INT DEFAULT NULL, , `message_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , `message_text` VARCHAR(10000) NOT NULL , `message_seen` BOOLEAN NOT NULL DEFAULT FALSE , PRIMARY KEY (`message_id`)) ENGINE = InnoDB;
 ALTER TABLE `messages` ADD FOREIGN KEY (`user_reciever`) REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `messages` ADD FOREIGN KEY (`user_sender`) REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
