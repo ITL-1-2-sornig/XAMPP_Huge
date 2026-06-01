@@ -28,7 +28,11 @@
                 <a href="<?php echo Config::get('URL'); ?>profile/index">Profiles</a>
             </li>
             <?php if (Session::userIsLoggedIn()) { ?>
-                <li <?php if (View::checkForActiveControllerAndAction($filename, "message/groupchats")) { echo ' class="active" '; } ?> >
+                <li <?php if (View::checkForActiveControllerAndAction($filename, "message/groupchats")||
+                    View::checkForActiveControllerAndAction($filename, "message/index_group")||
+                    (View::checkForActiveControllerAndAction($filename, "message/index") &&
+                    isSet($this->group_id))
+                ) { echo ' class="active" '; } ?> >
                     <a href="<?php echo Config::get('URL'); ?>message/groupchats">Group Chats</a>
                 </li>
                 <li <?php if (View::checkForActiveController($filename, "dashboard")) { echo ' class="active" '; } ?> >

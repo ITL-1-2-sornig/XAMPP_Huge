@@ -3,6 +3,9 @@
 
     <div class="box">
 
+        <!-- echo out the system feedback (error and success messages) -->
+        <?php $this->renderFeedbackMessages(); ?>
+
         <h3>What happens here ?</h3>
 
         <div>
@@ -18,7 +21,14 @@
                 <?php foreach($this->groups as $group) {?>
                     <tr>
                         <td><?= $group->name ?></td>
-                        <td><a href="<?= Config::get('URL') . 'message/group/' . $group->id; ?>"> unread messages: <?= $group->unread ?></a></td>
+                        <td>
+                            <form action="<?php echo Config::get('URL') . 'message/index_group/' . $group->id; ?>">
+                                    <Button type="Submit" class="<?php echo $this->unread[$group->id]->unread==0? "message-counter-no-new":"message-counter-new" ?>">
+                                        <?= $this->unread[$group->id]->unread . " new messages";
+                                        ?>
+                                    </Button>
+                                </form>
+                        </td>
                 <?php } ?>
             </div>
         </table>

@@ -23,16 +23,19 @@ class MessageController extends Controller
         MessageModel::setStatusSeen($user, Session::get('user_id'));
     }
     /**
-     * This method controls what happens when you move to /message/group
+     * This method controls what happens when you move to /message/index_group
      */
-    public function group($groupID)
+    public function index_group($group)
     {
+        if(!MessageModel::LoggedInuserIsMember($group)){
+            Redirect::to("message/groupchats");
+        }
         $this->View->render('message/index', array(
-                'messages'      => MessageModel::getAllMessagesForGroup($groupID),
-                'reciever'      => MessageModel::getChatNameByID($groupID),
-                'reciever_id'   => $groupID)
-        );
-        MessageModel::setStatusSeen($groupID, Session::get('user_id'));
+                'messages'      => MessageModel::getAllMessagesInGroupchat($group),
+                'reciever'      => MessageModel::getChatNameByID($group),
+                'group_id'      => $group
+        ));
+        MessageModel::setStatusSeen($group, Session::get('user_id'));
     }
 
     /**
@@ -42,6 +45,14 @@ class MessageController extends Controller
         $text = $_POST['text'];
         MessageModel::newMessage(Session::get('user_id'), $reciever, $text);
         Redirect::to("message/index/$reciever");
+    }
+    /**
+     * This method controls what happens when you write a message to a group
+     */
+    public function writeGroup($group){
+        $text = $_POST['text'];
+        MessageModel::newMessageGroup(Session::get('user_id'), $group, $text);
+        Redirect::to("message/index_group/$group");
     }
     /**
      * This method controls what happens when you move to /message/groupchats
@@ -71,7 +82,8 @@ class MessageController extends Controller
         } else {
             MessageModel::createGroupChat($_POST['group_name'], $users);
         }
-        this->groupchats();
+        $this->groupchats();
     }
+
 
 }

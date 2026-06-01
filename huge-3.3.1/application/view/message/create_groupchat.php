@@ -3,6 +3,9 @@
 
     <div class="box">
 
+        <!-- echo out the system feedback (error and success messages) -->
+        <?php $this->renderFeedbackMessages(); ?>
+
         <h3>What happens here ?</h3>
 
         <div>
@@ -13,7 +16,7 @@
         action="<?= Config::get('URL') . 'message/newGroupchat'; ?>">
             <?php foreach ($this->users as $user) { ?>
                 <input type="checkbox" name="users[]" value="<?= $user->user_id; ?>"
-                <?php if($user->user_id == Session::get('user_id')) { ?> checked disabled<?php } ?>><?= $user->user_name; ?><br>
+                <?php if($user->user_id == Session::get('user_id')) { ?> checked onClick="return false"<?php } ?>><?= $user->user_name; ?><br>
             <?php } ?>
             <br>
             <input type="text" name="group_name" placeholder="Groupchat Name" required="True"><br>

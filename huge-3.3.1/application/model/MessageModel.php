@@ -64,6 +64,66 @@ class MessageModel
     }
 
     /**
+     * Gets all Messages in a groupchat
+     *
+     * @param $groupID
+     * 
+     * @return array Returns arrray with all messages in the groupchat ordered by timestamp
+     */
+    public static function getAllMessagesInGroupchat($groupID)
+    {
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("SELECT u.user_name AS sender_name,
+        u.user_id AS sender_id,
+        m.chat_message_id AS message_id,
+        m.message_timestamp AS message_timestamp,
+        m.message_text AS message_text
+        FROM chat_messages AS m
+        JOIN users AS u
+        ON m.sender_user_id = u.user_id
+        WHERE m.thread_id = :thread_id
+        ORDER BY message_timestamp;");
+        $query->execute(array(
+                ':thread_id' => $groupID
+        ));
+
+        $queryLastSeen = $database->prepare("SELECT last_read_message_id FROM chat_members
+        WHERE thread_id = :thread_id AND user_id = :user_id");
+        $queryLastSeen->execute(array(
+            ':thread_id' => $groupID,
+            ':user_id' => Session::get('user_id')
+        ));
+        $lastReadMessageID = $queryLastSeen->fetch()->last_read_message_id;
+
+        //sender.user_name AS sender_name, reciever.user_name AS reciever_name,
+        //JOIN users AS sender ON sender.user_id = message.user_sender
+        //JOIN users AS reciever ON  reciever.user_id = message.user_reciever
+
+        $messages = array();
+        $lastReadMessageID = 0;
+        foreach ($query->fetchAll() as $message) {
+
+            // all elements of array passed to Filter::XSSFilter for XSS sanitation, have a look into
+            // application/core/Filter.php for more info on how to use. Removes (possibly bad) JavaScript etc from
+            // the message's values
+            array_walk_recursive($message, 'Filter::XSSFilter');
+
+            $messages[$message->message_id] = new stdClass();
+            $messages[$message->message_id]->id = $message->message_id;
+
+            $messages[$message->message_id]->sender_name = $message->sender_name;
+            $messages[$message->message_id]->sender = $message->sender_id;
+            $messages[$message->message_id]->seen = $message->message_id <= $lastReadMessageID;
+            $messages[$message->message_id]->timestamp = $message->message_timestamp;
+            $messages[$message->message_id]->text = str_replace("\n", "<br>", $message->message_text);
+            $lastReadMessageID = $message->message_id;
+        }
+        if($lastReadMessageID > 0)
+            MessageModel::setStatusSeenGroup($groupID, Session::get('user_id'), $lastReadMessageID);
+        return $messages;
+    }
+
+    /**
      * Adds new message with specified text from one user to another
      *
      * @param $senderID
@@ -81,6 +141,27 @@ class MessageModel
                 'text'      => $text
         ));
 
+    }
+
+    /**
+     * Adds new message with specified text from one user to a group
+     *
+     * @param $senderID
+     * @param $groupID
+     * @param $text
+     * 
+     */
+    public static function newMessageGroup($senderID, $groupID, $text){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("INSERT INTO chat_messages (thread_id, sender_user_id, message_text)
+            VALUES (:thread_id, :sender_user_id, :message_text)");
+        $query->execute(array(
+                ':thread_id' => $groupID,
+                ':sender_user_id' => $senderID,
+                ':message_text' => $text
+        ));
+        $messageID = $database->lastInsertId();
+        MessageModel::setStatusSeenGroup($groupID, Session::get('user_id'), $messageID);
     }
 
     /**
@@ -173,6 +254,32 @@ class MessageModel
         ));
     }
 
+    /**
+     * Sets Status of messages in a groupchat to seen for a user to a certain message
+     *
+     * @param $groupID
+     * @param $userID
+     * @param $lastReadMessageID
+     * 
+     */
+    public static function setStatusSeenGroup($groupID, $userID, $lastReadMessageID){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("UPDATE chat_members SET last_read_message_id = :last_read_message_id
+        WHERE thread_id = :group_id AND user_id = :user_id");
+        $query->execute(array(
+            ':last_read_message_id' => $lastReadMessageID,
+            ':group_id' => $groupID,
+            ':user_id' => $userID
+        ));
+    }
+
+    /**
+     * Returns all groupchats a user is a member of
+     *
+     * @param $userID
+     * 
+     * @return array Returns arrray with all groupchats the user is a member of
+     */
     public static function getAllGroupChatsForUser($userID){
         $database = DatabaseFactory::getFactory()->getConnection();
         $query = $database->prepare("SELECT chat_threads.thread_name, chat_threads.thread_id FROM chat_threads
@@ -195,6 +302,13 @@ class MessageModel
         return $groupchats;
     }
 
+    /**
+     * Creates a new groupchat with the given name and members
+     *
+     * @param $name
+     * @param $members
+     * 
+     */
     public static function createGroupChat($name, $members){
         $database = DatabaseFactory::getFactory()->getConnection();
         $query = $database->prepare("INSERT INTO chat_threads (thread_name, created_by) VALUES (:name, :created_by)");
@@ -211,4 +325,36 @@ class MessageModel
             ));
         }
     }
+
+    /**
+     * Returns the name of a chat by its ID
+     *
+     * @param $id
+     * @return string
+     */
+    public static function getChatNameByID($id){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("SELECT thread_name FROM chat_threads WHERE thread_id = :thread_id");
+        $query->execute(array(
+            ':thread_id' => $id
+        ));
+        return $query->fetch()->thread_name;
+    }
+
+    /**
+     * Checks if the logged-in user is a member of a specific group chat
+     *
+     * @param $groupID
+     * @return bool
+     */
+    public static function LoggedInuserIsMember($groupID){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("SELECT * FROM chat_members WHERE thread_id = :thread_id AND user_id = :user_id");
+        $query->execute(array(
+            ':thread_id' => $groupID,
+            ':user_id' => Session::get('user_id')
+        ));
+        return $query->rowCount() > 0;
+    }
+
 }
