@@ -324,6 +324,7 @@ class MessageModel
                 ':user_id' => $member
             ));
         }
+        Session::add('feedback_positive', Text::get('FEEDBACK_GROUPCHAT_CREATION_SUCCESSFUL'));
     }
 
     /**

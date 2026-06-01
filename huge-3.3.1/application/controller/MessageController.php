@@ -78,11 +78,12 @@ class MessageController extends Controller
         $users = $_POST['users'];
         if(count($users) < 2){
             Session::add('feedback_negative', Text::get('FEEDBACK_GROUPCHAT_CREATION_MISSING_MEMBERS'));
-            Redirect::to("message/create_groupchat");
-        } else {
-            MessageModel::createGroupChat($_POST['group_name'], $users);
+            $this->create_groupchat();
         }
-        $this->groupchats();
+        else{
+            MessageModel::createGroupChat($_POST['group_name'], $users);
+            $this->groupchats();
+        }
     }
 
 
