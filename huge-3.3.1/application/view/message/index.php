@@ -37,7 +37,7 @@
             <form method="POST"
             action="<?= Config::get('URL') . 'message/write/' . $this->reciever_id ; ?>"
             class="message-Input-Form">
-                <textarea calss="message-Input" name="text" required="True"></textarea>
+                <textarea class="message-Input" name="text" required="True"></textarea>
                 <br>
                 <button type="Submit">
                     Send

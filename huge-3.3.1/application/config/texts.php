@@ -73,4 +73,6 @@ return array(
     "FEEDBACK_NOTE_DELETION_FAILED" => "Note deletion failed.",
     "FEEDBACK_COOKIE_INVALID" => "Your remember-me-cookie is invalid.",
     "FEEDBACK_COOKIE_LOGIN_SUCCESSFUL" => "You were successfully logged in via the remember-me-cookie.",
+    "FEEDBACK_GROUPCHAT_CREATION_SUCCESSFUL" => "You successfully created a groupchat.",
+    "FEEDBACK_GROUPCHAT_CREATION_MISSING_MEMBERS" => "Group chat creation failed. Not enough members.",
 );

@@ -121,6 +121,42 @@ class MessageModel
     }
 
     /**
+     * Gets number of unread Messages in groupchats of the logged in user
+     * 
+     * @return array Returns arrray with all user_ids and the number of unread messages
+     * and a boolean indicating if any messages have been sent between them
+     */
+    public static function getNumUnreadGroupMessages(){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare(
+        "SELECT chat_message_id AS chat_message_id, chat_threads.thread_id AS thread_id, chat_members.last_read_message_id AS last_read_message_id FROM chat_threads
+        JOIN chat_members ON chat_threads.thread_id = chat_members.thread_id
+        JOIN chat_messages ON chat_threads.thread_id = chat_messages.thread_id
+        WHERE chat_members.user_id = :user_id");
+        $query_groupchats = $database->prepare("SELECT chat_threads.thread_id FROM chat_threads
+        JOIN chat_members ON chat_threads.thread_id = chat_members.thread_id
+        WHERE chat_members.user_id = :user_id");
+        $query_groupchats->execute(array(
+            ':user_id' => Session::get('user_id')
+        ));
+        $query->execute(array(
+            ':user_id' => Session::get('user_id')
+        ));
+        $tally = array();
+
+        foreach ($query_groupchats->fetchAll() as $groupchat) {
+            $tally[$groupchat->thread_id] = new stdClass();
+            $tally[$groupchat->thread_id]->unread = 0;
+        }
+
+        foreach ($query->fetchAll() as $group) {
+            if($group->chat_message_id > $group->last_read_message_id)
+                $tally[$group->thread_id]->unread ++;
+        }
+        return $tally;
+    }
+
+    /**
      * Sets Status of all messages from one user to another to seen
      *
      * @param $senderID
@@ -135,5 +171,44 @@ class MessageModel
             ':sender'   => $senderID,
             ':reciever' => $recieverID
         ));
+    }
+
+    public static function getAllGroupChatsForUser($userID){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("SELECT chat_threads.thread_name, chat_threads.thread_id FROM chat_threads
+        JOIN chat_members ON chat_threads.thread_id = chat_members.thread_id
+        AND chat_members.user_id = :user_id");
+        $query->execute(array(
+            ':user_id' => $userID
+        ));
+
+        $groupchats = array();
+
+        foreach ($query->fetchAll() as $groupchat) {
+            array_walk_recursive($groupchat, 'Filter::XSSFilter');
+
+            $groupchats[$groupchat->thread_id] = new stdClass();
+            $groupchats[$groupchat->thread_id]->id = $groupchat->thread_id;
+            $groupchats[$groupchat->thread_id]->name = $groupchat->thread_name;
+        }
+
+        return $groupchats;
+    }
+
+    public static function createGroupChat($name, $members){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("INSERT INTO chat_threads (thread_name, created_by) VALUES (:name, :created_by)");
+        $query->execute(array(
+            ':name' => $name,
+            ':created_by' => Session::get('user_id')
+        ));
+        $threadID = $database->lastInsertId();
+        $query = $database->prepare("INSERT INTO chat_members (thread_id, user_id) VALUES (:thread_id, :user_id)");
+        foreach($members as $member){
+            $query->execute(array(
+                ':thread_id' => $threadID,
+                ':user_id' => $member
+            ));
+        }
     }
 }

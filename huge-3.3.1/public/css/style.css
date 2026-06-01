@@ -323,7 +323,7 @@ body {
 }
 .message-Input{
     width: 60%;
-    margin-bottom: 20px;
+    margin-right: 5px;
     height: 3rem;
 }
 .message-Input-Form{
