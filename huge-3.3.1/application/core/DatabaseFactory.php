@@ -61,4 +61,9 @@ class DatabaseFactory
         }
         return $this->database;
     }
+
+    public function getConnectionMySqli(){
+        $mysqli = new mysqli(Config::get('DB_HOST'), Config::get('DB_USER'), Config::get('DB_PASS'), Config::get('DB_NAME'));
+        return $mysqli;
+    }
 }

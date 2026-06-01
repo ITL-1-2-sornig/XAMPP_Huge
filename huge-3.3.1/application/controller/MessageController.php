@@ -20,6 +20,7 @@ class MessageController extends Controller
                 'reciever'      => UserModel::getUserNameByID($user),
                 'reciever_id'   => $user)
         );
+        MessageModel::setStatusSeen($user, Session::get('user_id'));
     }
 
     /**
@@ -28,8 +29,7 @@ class MessageController extends Controller
     public function write($reciever){
         $text = $_POST['text'];
         MessageModel::newMessage(Session::get('user_id'), $reciever, $text);
-        $this->index($reciever);
+        Redirect::to("message/index/$reciever");
     }
-
 
 }

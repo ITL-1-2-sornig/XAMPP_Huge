@@ -67,7 +67,7 @@ class MessageModel
      * Adds new message with specified text from one user to another
      *
      * @param $senderID
-     * @param $reciever
+     * @param $recieverID
      * @param $text
      * 
      */
@@ -116,5 +116,22 @@ class MessageModel
             }
         }
         return $tally;
+    }
+
+    /**
+     * Sets Status of all messages from one user to another to seen
+     *
+     * @param $senderID
+     * @param $recieverID
+     * 
+     */
+    public static function setStatusSeen($senderID, $recieverID){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("UPDATE messages SET message_seen = '1'
+        WHERE user_sender=:sender AND user_reciever=:reciever");
+        $query->execute(array(
+            ':sender'   => $senderID,
+            ':reciever' => $recieverID
+        ));
     }
 }

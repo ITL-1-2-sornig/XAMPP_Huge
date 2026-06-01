@@ -9,28 +9,40 @@
             This controller/action/view shows a list of all messages between you and <?= $this->reciever; ?>
         </div>
         <div id="chat" class="chat-window">
-            <?php foreach($this->messages as $message) {?>
-                <?php if($message->sender != Session::get('user_id')) { ?>
-                    <div class="chat-bubble-container-left">
-                        <div class="chat-bubble <?php echo $message->seen? "chat-seen": "chat-new"?>">
-                            <?= $message->text ?>
+            <div>
+                <?php foreach($this->messages as $message) {?>
+                    <?php if($message->sender != Session::get('user_id')) { ?>
+                        <div class="chat-bubble-container-left">
+                            <div
+                            class="chat-bubble <?php echo $message->seen? "chat-seen": "chat-new"?>">
+                                <?= $message->text ?>
+                            </div>
+                            <div class="message-date">
+                                <?= $message->timestamp ?>
+                            </div>
                         </div>
-                    </div>
-                <?php } else { ?>
-                    <div class="chat-bubble-container-right">
-                        <div class="chat-bubble chat-sent">
-                            <?= $message->text ?>
+                    <?php } else { ?>
+                        <div class="chat-bubble-container-right">
+                            <div class="message-date">
+                                <?= $message->timestamp ?>
+                            </div>
+                            <div class="chat-bubble chat-sent">
+                                <?= $message->text ?>
+                            </div>
                         </div>
-                    </div>
+                    <?php } ?>
                 <?php } ?>
-            <?php } ?>
+            </div>
         </div>
-        <form method="POST" action="<?= Config::get('URL') . 'message/write/' . $this->reciever_id ; ?>">
-            <textarea name="text" required="True"></textarea>
-            <button type="Submit">
-                Senden
-            </button>
-        </form>
+            <form method="POST"
+            action="<?= Config::get('URL') . 'message/write/' . $this->reciever_id ; ?>"
+            class="message-Input-Form">
+                <textarea calss="message-Input" name="text" required="True"></textarea>
+                <br>
+                <button type="Submit">
+                    Senden
+                </button>
+            </form>
     </div>
 </div>
 <script>
