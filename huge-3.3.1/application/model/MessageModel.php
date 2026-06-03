@@ -192,31 +192,20 @@ class MessageModel
      */
     public static function getNumUnreadGroupMessages(){
         $database = DatabaseFactory::getFactory()->getConnection();
-        $query = $database->prepare(
-        "SELECT chat_message_id AS chat_message_id, chat_threads.thread_id AS thread_id, chat_members.last_read_message_id AS last_read_message_id FROM chat_threads
-        JOIN chat_members ON chat_threads.thread_id = chat_members.thread_id
-        JOIN chat_messages ON chat_threads.thread_id = chat_messages.thread_id
-        WHERE chat_members.user_id = :user_id");
-        $query_groupchats = $database->prepare("SELECT chat_threads.thread_id FROM chat_threads
-        JOIN chat_members ON chat_threads.thread_id = chat_members.thread_id
-        WHERE chat_members.user_id = :user_id");
-        $query_groupchats->execute(array(
-            ':user_id' => Session::get('user_id')
-        ));
+        $query = $database->prepare("CALL getNumUnreadGroupMessages(:user_id)");
         $query->execute(array(
             ':user_id' => Session::get('user_id')
         ));
+
         $tally = array();
 
-        foreach ($query_groupchats->fetchAll() as $groupchat) {
-            $tally[$groupchat->thread_id] = new stdClass();
-            $tally[$groupchat->thread_id]->unread = 0;
+        foreach ($query->fetchAll() as $groupchat) {
+            $tally[$groupchat->group_id] = new stdClass();
+            $tally[$groupchat->group_id]->thread_id = $groupchat->group_id;
+            $tally[$groupchat->group_id]->unread = $groupchat->unread;
         }
 
-        foreach ($query->fetchAll() as $group) {
-            if($group->chat_message_id > $group->last_read_message_id)
-                $tally[$group->thread_id]->unread ++;
-        }
+        $query->closeCursor();
         return $tally;
     }
 
@@ -229,12 +218,12 @@ class MessageModel
      */
     public static function setStatusSeen($senderID, $recieverID){
         $database = DatabaseFactory::getFactory()->getConnection();
-        $query = $database->prepare("UPDATE messages SET message_seen = '1'
-        WHERE user_sender=:sender AND user_reciever=:reciever");
+        $query = $database->prepare("CALL setStatusSeen(:sender, :reciever)");
         $query->execute(array(
             ':sender'   => $senderID,
             ':reciever' => $recieverID
         ));
+        $query->closeCursor();
     }
 
     /**
@@ -247,13 +236,13 @@ class MessageModel
      */
     public static function setStatusSeenGroup($groupID, $userID, $lastReadMessageID){
         $database = DatabaseFactory::getFactory()->getConnection();
-        $query = $database->prepare("UPDATE chat_members SET last_read_message_id = :last_read_message_id
-        WHERE thread_id = :group_id AND user_id = :user_id");
+        $query = $database->prepare("CALL setStatusSeenGroup(:user_id, :group_id, :last_read_message_id)");
         $query->execute(array(
             ':last_read_message_id' => $lastReadMessageID,
             ':group_id' => $groupID,
             ':user_id' => $userID
         ));
+        $query->closeCursor();
     }
 
     /**
@@ -265,9 +254,7 @@ class MessageModel
      */
     public static function getAllGroupChatsForUser($userID){
         $database = DatabaseFactory::getFactory()->getConnection();
-        $query = $database->prepare("SELECT chat_threads.thread_name, chat_threads.thread_id FROM chat_threads
-        JOIN chat_members ON chat_threads.thread_id = chat_members.thread_id
-        AND chat_members.user_id = :user_id");
+        $query = $database->prepare("CALL getAllGroupChatsForUser(:user_id)");
         $query->execute(array(
             ':user_id' => $userID
         ));
@@ -281,7 +268,7 @@ class MessageModel
             $groupchats[$groupchat->thread_id]->id = $groupchat->thread_id;
             $groupchats[$groupchat->thread_id]->name = $groupchat->thread_name;
         }
-
+        $query->closeCursor();
         return $groupchats;
     }
 
@@ -294,13 +281,14 @@ class MessageModel
      */
     public static function createGroupChat($name, $members){
         $database = DatabaseFactory::getFactory()->getConnection();
-        $query = $database->prepare("INSERT INTO chat_threads (thread_name, created_by) VALUES (:name, :created_by)");
+        $query = $database->prepare("CALL createGroupChat(:name, :created_by)");
         $query->execute(array(
             ':name' => $name,
             ':created_by' => Session::get('user_id')
         ));
-        $threadID = $database->lastInsertId();
-        $query = $database->prepare("INSERT INTO chat_members (thread_id, user_id) VALUES (:thread_id, :user_id)");
+        $threadID = $query->fetch()->newID;
+        $query->closeCursor();
+        $query = $database->prepare("CALL addMemberToGroupchat(:user_id, :thread_id)");
         foreach($members as $member){
             $query->execute(array(
                 ':thread_id' => $threadID,
@@ -308,6 +296,7 @@ class MessageModel
             ));
         }
         Session::add('feedback_positive', Text::get('FEEDBACK_GROUPCHAT_CREATION_SUCCESSFUL'));
+        $query->closeCursor();
     }
 
     /**
@@ -318,7 +307,7 @@ class MessageModel
      */
     public static function getChatNameByID($id){
         $database = DatabaseFactory::getFactory()->getConnection();
-        $query = $database->prepare("SELECT thread_name FROM chat_threads WHERE thread_id = :thread_id");
+        $query = $database->prepare("CALL getChatNameByID(:thread_id)");
         $query->execute(array(
             ':thread_id' => $id
         ));
@@ -333,7 +322,7 @@ class MessageModel
      */
     public static function LoggedInuserIsMember($groupID){
         $database = DatabaseFactory::getFactory()->getConnection();
-        $query = $database->prepare("SELECT * FROM chat_members WHERE thread_id = :thread_id AND user_id = :user_id");
+        $query = $database->prepare("CALL getMemberInGroup(:user_id, :thread_id)");
         $query->execute(array(
             ':thread_id' => $groupID,
             ':user_id' => Session::get('user_id')

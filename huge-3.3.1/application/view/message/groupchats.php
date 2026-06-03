@@ -18,13 +18,16 @@
                     <td>Messages</td>
                 </tr>
             <div>
-                <?php foreach($this->groups as $group) {?>
+                <?php foreach($this->groups as $group) {
+                    $new = 0;
+                    if(array_key_exists($group->id, $this->unread))
+                        $new = $this->unread[$group->id]->unread;?>
                     <tr>
                         <td><?= $group->name ?></td>
                         <td>
                             <form action="<?php echo Config::get('URL') . 'message/index_group/' . $group->id; ?>">
-                                    <Button type="Submit" class="<?php echo $this->unread[$group->id]->unread==0? "message-counter-no-new":"message-counter-new" ?>">
-                                        <?= $this->unread[$group->id]->unread . " new messages";
+                                    <Button type="Submit" class="<?php echo $new==0? "message-counter-no-new":"message-counter-new" ?>">
+                                        <?= $new . " new messages";
                                         ?>
                                     </Button>
                                 </form>
