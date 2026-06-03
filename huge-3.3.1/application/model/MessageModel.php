@@ -29,10 +29,7 @@ class MessageModel
     public static function getAllMessagesBetweenUsers($user1ID, $user2ID)
     {
         $database = DatabaseFactory::getFactory()->getConnection();
-        $query = $database->prepare("SELECT * FROM messages
-        WHERE (user_sender = :user_1_id AND user_reciever = :user_2_id)
-        OR (user_sender = :user_2_id AND user_reciever = :user_1_id)
-        ORDER BY message_timestamp;");
+        $query = $database->prepare("CALL getAllMessagesBetweenUsers(:user_1_id, :user_2_id)");
         $query->execute(array(
                 ':user_1_id' => $user1ID,
                 ':user_2_id' => $user2ID
@@ -59,6 +56,7 @@ class MessageModel
             $messages[$message->message_id]->timestamp = $message->message_timestamp;
             $messages[$message->message_id]->text = str_replace("\n", "<br>", $message->message_text);
         }
+        $query->closeCursor();
 
         return $messages;
     }
@@ -73,31 +71,13 @@ class MessageModel
     public static function getAllMessagesInGroupchat($groupID)
     {
         $database = DatabaseFactory::getFactory()->getConnection();
-        $query = $database->prepare("SELECT u.user_name AS sender_name,
-        u.user_id AS sender_id,
-        m.chat_message_id AS message_id,
-        m.message_timestamp AS message_timestamp,
-        m.message_text AS message_text
-        FROM chat_messages AS m
-        JOIN users AS u
-        ON m.sender_user_id = u.user_id
-        WHERE m.thread_id = :thread_id
-        ORDER BY message_timestamp;");
-        $query->execute(array(
-                ':thread_id' => $groupID
-        ));
 
-        $queryLastSeen = $database->prepare("SELECT last_read_message_id FROM chat_members
-        WHERE thread_id = :thread_id AND user_id = :user_id");
-        $queryLastSeen->execute(array(
+        $query = $database->prepare("CALL getAllMessagesInGroupchat(:thread_id, :user_id)");
+        
+        $query->execute(array(
             ':thread_id' => $groupID,
             ':user_id' => Session::get('user_id')
         ));
-        $lastReadMessageID = $queryLastSeen->fetch()->last_read_message_id;
-
-        //sender.user_name AS sender_name, reciever.user_name AS reciever_name,
-        //JOIN users AS sender ON sender.user_id = message.user_sender
-        //JOIN users AS reciever ON  reciever.user_id = message.user_reciever
 
         $messages = array();
         $lastReadMessageID = 0;
@@ -113,13 +93,15 @@ class MessageModel
 
             $messages[$message->message_id]->sender_name = $message->sender_name;
             $messages[$message->message_id]->sender = $message->sender_id;
-            $messages[$message->message_id]->seen = $message->message_id <= $lastReadMessageID;
+            $messages[$message->message_id]->seen = $message->seen;
             $messages[$message->message_id]->timestamp = $message->message_timestamp;
             $messages[$message->message_id]->text = str_replace("\n", "<br>", $message->message_text);
             $lastReadMessageID = $message->message_id;
         }
+        $query->closeCursor();
         if($lastReadMessageID > 0)
             MessageModel::setStatusSeenGroup($groupID, Session::get('user_id'), $lastReadMessageID);
+        
         return $messages;
     }
 
@@ -133,14 +115,13 @@ class MessageModel
      */
     public static function newMessage($senderID, $recieverID, $text){
         $database = DatabaseFactory::getFactory()->getConnection();
-        $query = $database->prepare("INSERT INTO messages (user_sender, user_reciever, message_text)
-            VALUES (:sender, :reciever, :text)");
+        $query = $database->prepare("CALL newMessage(:sender, :reciever, :text)");
         $query->execute(array(
                 ':sender'   => $senderID,
                 ':reciever' => $recieverID,
-                'text'      => $text
+                ':text'      => $text
         ));
-
+        $query->closeCursor();
     }
 
     /**
@@ -153,8 +134,7 @@ class MessageModel
      */
     public static function newMessageGroup($senderID, $groupID, $text){
         $database = DatabaseFactory::getFactory()->getConnection();
-        $query = $database->prepare("INSERT INTO chat_messages (thread_id, sender_user_id, message_text)
-            VALUES (:thread_id, :sender_user_id, :message_text)");
+        $query = $database->prepare("CALL newMessageGroup(:sender_user_id, :thread_id, :message_text)");
         $query->execute(array(
                 ':thread_id' => $groupID,
                 ':sender_user_id' => $senderID,
@@ -162,6 +142,7 @@ class MessageModel
         ));
         $messageID = $database->lastInsertId();
         MessageModel::setStatusSeenGroup($groupID, Session::get('user_id'), $messageID);
+        $query->closeCursor();
     }
 
     /**
@@ -172,10 +153,9 @@ class MessageModel
      */
     public static function getNumUnreadMessages(){
         $database = DatabaseFactory::getFactory()->getConnection();
-        $queryusers = $database->prepare("SELECT user_id FROM users");
+        $queryusers = $database->prepare("CALL getAllUserIDs()");
         $queryusers->execute(array());
-        $queryMessages = $database->prepare("SELECT user_sender, user_reciever, message_seen
-        FROM messages WHERE user_sender = :user_id OR user_reciever = :user_id");
+        $queryMessages = $database->prepare("CALL getallMessages(:user_id)");
 
         $tally = array();
 
@@ -184,6 +164,8 @@ class MessageModel
             $tally[$user->user_id]->unread = 0;
             $tally[$user->user_id]->hasChat = false;
         }
+
+        $queryusers->closeCursor();
 
         $queryMessages->execute(array(
             ':user_id' => Session::get('user_id')
@@ -198,6 +180,7 @@ class MessageModel
             elseif($message->user_reciever)
                 $tally[$message->user_reciever]->hasChat = true;
         }
+        $queryMessages->closeCursor();
         return $tally;
     }
 
