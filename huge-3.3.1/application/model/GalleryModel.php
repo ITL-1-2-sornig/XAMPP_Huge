@@ -74,7 +74,7 @@ class GalleryModel
                 ':uploader_id' => Session::get('user_id')
         ));
         $name = $queryGetName->fetch()->name;
-        $hash = md5($name);
+        $hash = md5($imageId . "/" . $name);
         $query = $database->prepare("UPDATE images SET shared = TRUE, hash = :hash
             WHERE id = :image_id AND uploader_id=:uploader_id");
         $query->execute(array(
