@@ -1,14 +1,14 @@
 # XAMPP_Huge
-Projekt für ITL_1_2
+## Projekt für ITL_1_2
 
 Zum erstellen der Datenbank empfiehlt es sich, die SQL-Dateien in [application/_installation](huge-3.3.1/application/_installation) auszuführen. Die Liste an SQL-Befehlen hier dient ausschließlich dazu, wenn bereits eine standardmässige huge-Datenbank aufgesetzt wurde und diese nun auf das Projekt angepasst werden soll.
 
-Um die User Tabelle manuel anzupassen
+## User Tabelle manuel anpassen
 ``` sql
 ALTER TABLE `users` CHANGE `user_email` `user_email` VARCHAR(254) CHARACTER SET utf8 COLLATE utf8_unicode_ci COMMENT 'user\'s email';
 ALTER TABLE `users` DROP INDEX `user_email`;
 ```
-Um die user_role Tabelle manuel zu erstellen
+## user_role Tabelle manuel erstellen
 ``` sql
 CREATE TABLE `user_roles` (
   `id` tinyint(11) NOT NULL,
@@ -21,7 +21,7 @@ INSERT INTO `user_roles` (`id`, `role_name`) VALUES
 (1, 'Guest'),
 (7, 'Administrator');
 ```
-Tabellen für die Messenger-Funktionen
+## Tabellen für die Messenger-Funktionen
 
 ``` sql
 CREATE TABLE `messages` (`message_id` INT NOT NULL AUTO_INCREMENT , `user_sender` INT NOT NULL , `user_reciever` INT DEFAULT NULL, `message_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , `message_text` VARCHAR(10000) NOT NULL , `message_seen` BOOLEAN NOT NULL DEFAULT FALSE , PRIMARY KEY (`message_id`)) ENGINE = InnoDB;
@@ -84,7 +84,7 @@ CREATE TABLE `chat_members` (
 );
 ```
 
-Erstellen der Stored Procedures
+## Erstellen der Stored Procedures
 
 ``` sql
 DELIMITER /
@@ -299,4 +299,20 @@ BEGIN
       WHERE thread_id = groupID AND user_id = userID;
 END/
 DELIMITER ;
+```
+## Tabelle für Bilder
+```sql
+CREATE TABLE `huge`.`images` (
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `name` varchar(255) NOT NULL,
+  `hash` varchar(32) DEFAULT NULL,
+  `downloads` int(11) NOT NULL DEFAULT 0,
+  `shared` tinyint(1) NOT NULL DEFAULT 0,
+  `uploader_id` int(11) NOT NULL,
+  `size` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+ALTER TABLE `images`
+  ADD CONSTRAINT `images_ibfk_1` FOREIGN KEY (`uploader_id`) REFERENCES `users` (`user_id`);
 ```

@@ -339,3 +339,29 @@ body {
     font-size: large;
     color: #6a6a6a;
 }
+
+/* image styles */
+.image-box{
+    border-style: solid;
+    border-radius: 10px;
+    padding: 8px;
+    margin: 10px;
+    border-width: 2px;
+    border-color: #6a6a6a;
+    width: min-content;
+    height: min-content;
+}
+.image{
+    max-width: 400px;
+    max-height: 400px;
+}
+.image-text-container{
+    display: flex;
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+}
+.gallery-container{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: start;
+}

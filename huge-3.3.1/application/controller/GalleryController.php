@@ -11,12 +11,16 @@ class GalleryController extends Controller
     }
 
     /**
-     * This method controls what happens when you move to /agallery or /gallery/index in your app.
+     * This method controls what happens when you move to /gallery or /gallery/index in your app.
      */
     public function index()
     {
-        $this->View->render('gallery/index'
-        );
+        if(!Session::userIsLoggedIn()){
+            Redirect::to("login");
+        }
+        $this->View->render('gallery/index', array(
+            'images'=>GalleryModel::getAllImagesForUser(Session::get('user_id'))
+        ));
     }
 
     /**
@@ -59,8 +63,86 @@ class GalleryController extends Controller
         }
         move_uploaded_file($_FILES['file']['tmp_name'], $target);
 
-        $this->View->render('gallery/index'
-        );
+        $this->index();
     }
 
+    /**
+     * This method handles displaying non-public images
+     */
+    public function showImg($image_id, $extension, $actual_name){
+        $this->accessImg($image_id, $extension, $actual_name,Session::get('user_id'), true);
+    }
+
+    /**
+     * This method handles downloading non-public images
+     */
+    public function downloadImg($image_id, $extension, $actual_name){
+        $this->accessImg($image_id, $extension, $actual_name,Session::get('user_id'), false);
+    }
+
+    /**
+     * This method handles displaying non-public images
+     */
+    public function showImgPublic($hash){
+        $imgInfo = GalleryModel::getImagePublic($hash);
+        if($imgInfo){
+            $split_name = explode('.', $imgInfo->name);
+            $extension = end($split_name);
+            $this->accessImg($imgInfo->id, $extension, $imgInfo->name, $imgInfo->uploader_id, true);
+        }  
+    }
+
+    /**
+     * This method handles downloading non-public images
+     */
+    public function downloadImgPublic($hash){
+        $imgInfo = GalleryModel::getImagePublic($hash);
+        if($imgInfo){
+            $split_name = explode('.', $imgInfo->name);
+            $extension = end($split_name);
+            $this->accessImg($imgInfo->id, $extension, $imgInfo->name, $imgInfo->uploader_id, false);
+        }
+    }
+
+    /**
+     * This method handles accessing non-public images
+     */
+    private function accessImg($image_id, $extension, $actual_name, $user_id, $inline){
+        $name_internal = $image_id . "." . $extension;
+        $path = dirname(__DIR__) . '/uploads/' . $user_id . "/" . $name_internal;
+        if (!file_exists($path)) {
+            die('File not found!');
+        }
+        if(!$inline)
+            GalleryModel::increaseDownloadCounter($image_id);
+        // MIME-Type aus Dateiinhalt ermitteln
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime  = $finfo->file($path);
+
+        // HTTP-Header senden – VOR jeder anderen Ausgabe!
+        header('Content-Type: ' . $mime);
+        header('Content-Disposition: ' .
+        ($inline? 'inline':'attachment') .
+        '; filename="' . $actual_name . '"');
+        header('Content-Length: ' . filesize($path));
+        readfile($path);  // Dateiinhalt ausgeben
+        exit;               // danach NICHTS mehr ausgeben!
+
+    }
+
+    public function makePublic($image_id){
+        GalleryModel::makePublic($image_id);
+        $this->index();
+    }
+
+    public function makeNotPublic($image_id){
+        GalleryModel::makeNotPublic($image_id);
+        $this->index();
+    }
+
+    public function public($hash){
+        $this->View->render('gallery/shared', array(
+            'image'=>GalleryModel::getImagePublic($hash)
+        ));
+    }
 }

@@ -16,11 +16,38 @@
                 <button type="submit">Submit</button>
             </form>
 
-            <div>
+            <div class="gallery-container">
                 <?php foreach($this->images as $image) {
-                    if($image->uploader_id == Session::get('user_id')){ //this check shouldn't be necessary, but i included it for safety?>
-                    <img src="/uploads/<?= Session::get('user_id')?>/<?= $image->id ?>" >
-                <?php }}>
+                    if($image->uploader == Session::get('user_id')){ //this check shouldn't be necessary, but you never know
+                    $split_name = explode('.', $image->name);
+                    $extension = end($split_name);
+                    $imgParams = $image->id."/".$extension."/".$image->name; ?>
+                    <div class="image-box">
+                        <img class = "image"
+                            src="<?= config::get("URL"); ?>gallery/showImg/<?= $imgParams ?>"
+                            alt="<?= $image->name ?>">
+                        <br>
+                        <div class="image-text-container">
+                        <?= $image->name ?>
+                            <div>
+                                (<a href="<?= config::get("URL"); ?>gallery/downloadImg/<?= $imgParams ?>">
+                                    Download
+                                </a>)
+                            </div>
+                        </div>
+                        <?php if($image->shared){?>
+                            Link for sharing:
+                            <div><?= config::get("URL"); ?>gallery/public/<?= $image->hash ?></div>
+                            <form action="<?= config::get("URL"); ?>gallery/makeNotPublic/<?= $image->id ?>">
+                                <button type="submit">unshare</button>
+                            </form>
+                        <?php } else {?>
+                            <form action="<?= config::get("URL"); ?>gallery/makePublic/<?= $image->id ?>">
+                                <button type="submit">share</button>
+                            </form>
+                        <?php } ?>
+                    </div>
+                <?php }} ?>
             </div>
         </div>
     </div>

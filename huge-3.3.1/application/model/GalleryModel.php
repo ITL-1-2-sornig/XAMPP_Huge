@@ -33,8 +33,8 @@ class GalleryModel
     public static function getAllImagesForUser($userId){
         $database = DatabaseFactory::getFactory()->getConnection();
         $query = $database->prepare("SELECT * FROM images WHERE uploader_id=:uploader_id");
-        $queryGetName->execute(array(
-            ':uploader_id' => $uploader_id
+        $query->execute(array(
+            ':uploader_id' => $userId
         ));
 
         $images = array();
@@ -62,20 +62,27 @@ class GalleryModel
      * Make image public and create hash for sharing
      *
      * @param $imageId
+     * 
+     * @return string hash
      */
     public static function makePublic($imageId){
         $database = DatabaseFactory::getFactory()->getConnection();
-        $queryGetName = $database->prepare("SELECT name FROM images WHERE id = :image_id");
+        $queryGetName = $database->prepare("SELECT name FROM images
+            WHERE id = :image_id AND uploader_id=:uploader_id");
         $queryGetName->execute(array(
-                ':image_id' => $image_id
+                ':image_id' => $imageId,
+                ':uploader_id' => Session::get('user_id')
         ));
         $name = $queryGetName->fetch()->name;
         $hash = md5($name);
-        $query = $database->prepare("UPDATE images SET shared = 'TRUE', hash = :hash WHERE id = :image_id");
+        $query = $database->prepare("UPDATE images SET shared = TRUE, hash = :hash
+            WHERE id = :image_id AND uploader_id=:uploader_id");
         $query->execute(array(
-                ':image_id' => $image_id,
+                ':image_id' => $imageId,
                 ':hash' => $hash,
+                ':uploader_id' => Session::get('user_id')
         ));
+        return $hash;
     }
 
     /**
@@ -85,9 +92,40 @@ class GalleryModel
      */
     public static function makeNotPublic($imageId){
         $database = DatabaseFactory::getFactory()->getConnection();
-        $query = $database->prepare('UPDATE images SET shared = "FALSE", hash = "" id = :image_id');
+        $query = $database->prepare('UPDATE images SET shared = FALSE, hash = ""
+            WHERE id = :image_id AND uploader_id=:uploader_id');
         $query->execute(array(
-                ':image_id' => $image_id
+                ':image_id' => $imageId,
+                ':uploader_id' => Session::get('user_id')
         ));
+    }
+
+    /**
+     * Increment download counter for image
+     *
+     * @param $imageId
+     */
+    public static function increaseDownloadCounter($imageId){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare('UPDATE images SET downloads = downloads+1 WHERE id = :image_id');
+        $query->execute(array(
+                ':image_id' => $imageId
+        ));
+    }
+
+    /**
+     * get public image info by hash
+     *
+     * @param $hash
+     * 
+     * @return stdClass of info
+     */
+    public static function getImagePublic($hash){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare('SELECT id, uploader_id, hash, name FROM images WHERE hash=:hash AND shared=true');
+        $query->execute(array(
+                ':hash' => $hash
+        ));
+        return $query->fetch();
     }
 }
