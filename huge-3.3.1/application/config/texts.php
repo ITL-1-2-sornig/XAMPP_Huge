@@ -75,4 +75,9 @@ return array(
     "FEEDBACK_COOKIE_LOGIN_SUCCESSFUL" => "You were successfully logged in via the remember-me-cookie.",
     "FEEDBACK_GROUPCHAT_CREATION_SUCCESSFUL" => "You successfully created a groupchat.",
     "FEEDBACK_GROUPCHAT_CREATION_MISSING_MEMBERS" => "Group chat creation failed. Not enough members.",
-);
+    "FEEDBACK_EVENT_EDIT_PARTICIPATION_LIMIT_TO_LOW" => "Editing Event failed: Participant limit can not be lower than number of already accepted reservations",
+    "FEEDBACK_RESERVATION_PARTICIPATION_LIMIT_TO_LOW" => "Creating Reservation failed: No more space for Reservations",
+    "FEEDBACK_OWN_EVENT_RESERVATION" => "Cannot Make a reservation for your own event",
+    "FEEDBACK_RESERVATION_SUCCESS" => "You successfully submitted a reservation. The event host will decide wether to accept it",
+
+);  

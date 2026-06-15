@@ -84,6 +84,35 @@ CREATE TABLE `chat_members` (
 );
 ```
 
+## Erstellen der Tabellen für die Event-Verwaltung
+```sql
+CREATE TABLE IF NOT EXISTS `huge`.`events` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `date` date NOT NULL,
+  `participant_limit` smallint(5) unsigned DEFAULT NULL,
+  `user_creator` int(11) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `FK_event_users` (`user_creator`),
+  CONSTRAINT `FK_event_users` FOREIGN KEY (`user_creator`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `huge`.`reservations` (
+  `ID` int(10) NOT NULL,
+  `user_participant` int(11) NOT NULL,
+  `event` int(11) NOT NULL,
+  `confirmed` tinyint(1) NOT NULL,
+  `code` char(8) DEFAULT '',
+  PRIMARY KEY (`ID`),
+  KEY `FK_reservations_users` (`user_participant`),
+  KEY `FK_reservations_events` (`event`),
+  CONSTRAINT `FK_reservations_events` FOREIGN KEY (`event`) REFERENCES `events` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `FK_reservations_users` FOREIGN KEY (`user_participant`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+```
+
 ## Erstellen der Stored Procedures
 
 ``` sql
