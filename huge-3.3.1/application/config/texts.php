@@ -79,5 +79,16 @@ return array(
     "FEEDBACK_RESERVATION_PARTICIPATION_LIMIT_TO_LOW" => "Creating Reservation failed: No more space for Reservations",
     "FEEDBACK_OWN_EVENT_RESERVATION" => "Cannot Make a reservation for your own event",
     "FEEDBACK_RESERVATION_SUCCESS" => "You successfully submitted a reservation. The event host will decide wether to accept it",
-
+    "FEEDBACK_CONFIRM_RESERVATION_PARTICIPATION_LIMIT_TO_LOW" => "Confirming reservation failed: Not enough free spaces left",
+    "FEEDBACK_CONFIRM_RESERVATION_NOT_CREATOR" => "Cannot confirm this reservation, as you are not the events host",
+    "FEEDBACK_UNCONFIRM_RESERVATION_NOT_CREATOR" => "Cannot unconfirm this reservation, as you are not the events host",
+    "FEEDBACK_RESERVATION_CONFIRMATION_SUCCESS" => "Reservation has been confirmed",
+    "FEEDBACK_RESERVATION_UNCONFIRM_SUCCESS" => "Reservation is no longer accepted",
+    "FEEDBACK_EVENT_CREATED_SUCCESS" => "Event created successfully",
+    "FEEDBACK_EVENT_CREATED_FAILURE" => "Event could not be created",
+    "FEEDBACK_EVENT_EDITED_SUCCESS" => "Event edited successfully",
+    "FEEDBACK_EVENT_EDITED_FAILURE" => "Event could not be edited",
+    "FEEDBACK_EVENT_DELETED_FAILURE" => "Event could not be deleted",
+    "FEEDBACK_EVENT_DELETED_SUCCESS" => "Event deleted successfully",
+    
 );  

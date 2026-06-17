@@ -99,11 +99,11 @@ CREATE TABLE IF NOT EXISTS `huge`.`events` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `huge`.`reservations` (
-  `ID` int(10) NOT NULL,
+  `ID` int(10) NOT NULL AUTO_INCREMENT,
   `user_participant` int(11) NOT NULL,
   `event` int(11) NOT NULL,
-  `confirmed` tinyint(1) NOT NULL,
-  `code` char(8) DEFAULT '',
+  `confirmed` tinyint(1) NOT NULL DEFAULT FALSE,
+  `code` char(8) DEFAULT NULL,
   PRIMARY KEY (`ID`),
   KEY `FK_reservations_users` (`user_participant`),
   KEY `FK_reservations_events` (`event`),

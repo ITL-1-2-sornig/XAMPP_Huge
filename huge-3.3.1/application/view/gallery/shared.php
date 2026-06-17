@@ -1,5 +1,5 @@
 <div class="container">
-    <h1>ProfileController/index</h1>
+    <h1>GalleryController/shared</h1>
     <div class="box">
 
         <!-- echo out the system feedback (error and success messages) -->
