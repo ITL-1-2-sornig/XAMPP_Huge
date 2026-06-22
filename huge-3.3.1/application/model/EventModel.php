@@ -146,6 +146,8 @@ class EventModel
 
         $result = $query->fetch();
 
+        $result->taken = EventModel::getEventParticipants($eventID);
+
         return $result;
     }
 
@@ -170,14 +172,15 @@ class EventModel
             COUNT(r.code) AS reserved
             FROM events AS e LEFT OUTER JOIN reservations AS r
             ON e.ID = r.event && r.confirmed = TRUE
-            WHERE e.date BETWEEN :startDate AND :endDate");
+            WHERE e.date BETWEEN :startDate AND :endDate
+            GROUP BY ID");
         
         $query->execute(array(
             ":startDate" => $startDate,
             ":endDate" => $endDate
         ));
 
-        $events = $array();
+        $events = array();
 
         foreach($query->fetchAll() as $event){
             $events[$event->ID] = new stdClass();
@@ -191,6 +194,37 @@ class EventModel
         }
 
         return $events;
+    }
+
+    /**
+     * Get all days in a month with an array of events on that day
+     *
+     * @param $year
+     * @param $month
+     * 
+     * @return array with array of events and array of days
+     */
+    public static function GetDaysWithEvents($year, $month){
+        //number of days in month
+        $lastDay = cal_days_in_month(CAL_GREGORIAN,$month,$year);
+        //Weekday of the first day in the month (0=mon, 6=sun)
+        $firstWeekDay = (jddayofweek((gregoriantojd($month, 1, $year))) - 1)%7;
+        $start=$year."-".$month."-1";
+        $end=$year."-".$month."-".$lastDay;
+        $events = EventModel::GetEventsInBetween($start, $end);
+        $days = array();
+        foreach(range(1,$lastDay) as $day){
+            $days[$day] = new stdClass();
+            $days[$day]->day = $day;
+            $days[$day]->events = array();
+            $days[$day]->wDay = ($firstWeekDay -1 + $day)%7; 
+        }
+        foreach($events as $event){
+            $day = (int)explode("-", $event->date)[2];
+            array_push($days[$day]->events, $event);
+        }
+
+        return $days;
     }
 
     /**
@@ -211,7 +245,7 @@ class EventModel
     }
 
     /**
-     * Counts the number of confirmed reservations for an Event and returns that number
+     * Returns all registrations for an event with the name of the user who made it
      *
      * @param $eventID
      * 
@@ -234,10 +268,6 @@ class EventModel
             ":eventID" => $eventID
         ));
 
-        $query->execute(array(
-            ":eventID" => $eventID
-        ));
-
         $reservations = array();
 
         foreach($query->fetchAll() as $reservation){
@@ -250,6 +280,30 @@ class EventModel
         }
         
         return $reservations;
+    }
+
+    /**
+     * Returns registration for an event by the logged in user, if one exists
+     *
+     * @param $eventID
+     * 
+     * @return stdClass reservation
+     */
+    public static function getUserEventReservation($eventID)
+    {
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("SELECT ID AS reservationID,
+        confirmed,
+        code
+        FROM reservations
+        WHERE event=:eventID AND user_participant=:userID");
+
+        $query->execute(array(
+            ":eventID"  => $eventID,
+            ":userID"   => Session::get("user_id")
+        ));
+        
+        return $query->fetch();
     }
 
     /**
@@ -342,6 +396,45 @@ class EventModel
         EventModel::setReservationNotConfirmed($reservationID);
 
         Session::add('feedback_positive', Text::get('FEEDBACK_RESERVATION_UNCONFIRM_SUCCESS'));
+    }
+
+    /**
+     * Accept all registration in the list for the given event and unaccept all
+     * other registrations, as long as the logged in user is the events host
+     *
+     * @param $registrationIDs
+     * @param $eventID
+     * 
+     */
+    public static function multiAcceptReservation($reservationIDs, $eventID){
+        if(!EventModel::eventBelongsToLoggedInUser($eventID)){
+            Session::add('feedback_negative', Text::get('FEEDBACK_CONFIRM_RESERVATION_NOT_CREATOR'));
+            return;
+        }    
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $queryLimit = $database->prepare("SELECT participant_limit AS `limit` FROM events
+            WHERE ID=:eventID");
+        $queryLimit->execute(array(
+            ":eventID" => $eventID,
+        ));
+        $limit = $queryLimit->fetch()->limit;
+        if($limit>0 && $limit<count($reservationIDs)) {
+            Session::add('feedback_negative', Text::get('FEEDBACK_CONFIRM_RESERVATION_PARTICIPATION_LIMIT_TO_LOW'));
+            return;
+        }
+        $queryReservations = $database->prepare("SELECT ID FROM reservations
+            WHERE event=:eventID");
+
+        $queryReservations->execute(array(
+            ":eventID" => $eventID,
+        ));
+
+        foreach($queryReservations->fetchALL() as $reservation){
+            if(in_array($reservation->ID, $reservationIDs))
+                EventModel::setReservationConfirmed($reservation->ID);
+            else
+                EventModel::setReservationNotConfirmed($reservation->ID);
+        }
     }
 
 

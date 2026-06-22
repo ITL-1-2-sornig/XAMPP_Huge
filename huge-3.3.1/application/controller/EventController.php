@@ -11,18 +11,32 @@ class EventController extends Controller
         Auth::checkAuthentication();
     }
 
+    public function index(){
+        $year = (int)date("Y");
+        $month = (int)date("m");
+
+        $this->View->render('event/index', array(
+            "days"  => EventModel::GetDaysWithEvents($year, $month),
+            "year"  => $year,
+            "month" => $month,
+        ));
+
+    }
+
     public function show($eventID){
         $event = EventModel::getEvent($eventID);
+        //if(!$event)
+
         if($event->creator == Session::get('user_id'))
-            $this->View->render('event/index', array(
+            $this->View->render('event/editEvent', array(
                 "event" => $event,
                 "reservations" => EventModel::getEventReservations($eventID),
             ));
         else
             $this->View->render('event/viewEvent', array(
-                "event" => $event
+                "event" => $event,
+                "reservation" => EventModel::getUserEventReservation($eventID),
             ));
-        
     }
 
     public function newEvent()
@@ -70,9 +84,10 @@ class EventController extends Controller
         Redirect::to("event/show/" . $eventID);
     }
 
-    public function addReservation()
+    public function addReservation($eventID)
     {
-
+        EventModel::addReservation($eventID);
+        Redirect::to("event/show/" . $eventID);
     }
 
     public function deleteEvent()
@@ -93,7 +108,13 @@ class EventController extends Controller
     }
 
     public function multiAcceptReservation($eventID){
-        //Implement next
+        $registrationIDs = array();
+        foreach($_POST as $key=>$value)
+            if(preg_match("/^confirm_[\d]+/", $key)&&$value=="on")
+                array_push($registrationIDs, substr($key, 8));
+
+        EventModel::multiAcceptReservation($registrationIDs, $eventID);
+        Redirect::to("event/show/" . $eventID);
     }
 
 }

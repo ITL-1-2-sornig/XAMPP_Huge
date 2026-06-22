@@ -9,6 +9,7 @@
         <div>
             This controller/action/view shows a picture shared by a user
         </div>
+        <?php if($this->image) {?>
         <div class="image-container">
             <img src="<?= config::get("URL"); ?>gallery/showImgPublic/<?= $this->image->hash ?>"
                 alt="<?= $this->image->name ?>">
@@ -19,5 +20,6 @@
                 </a>)
             </div>
         </div>
+        <?php }?>
     </div>
 </div>

@@ -7,66 +7,72 @@
 
         <h3>What happens here ?</h3>
         <div>
-            This controller/action/view shows an overview of an
-            event created by you and a list of reservations created
-            by other users. It allows editing the event and
-            accepting reservations
+            This controller/action/view shows all events in a calender
         </div>
-        <div>
-            <br>
-            <form method="POST" action="<?= config::get("URL"); ?>event/editEvent">
-                <input type="number" name="eventID"
-                value="<?= $this->event->ID ?>" hidden required></input>
-                <label for="name">Name</label>
-                <input name="name"
-                value="<?= $this->event->name ?>" maxlength="50" placeholder="Event name" required>
-                </input><br><br>
-                <label for="description">Description</label><br>
-                <textarea name="description" maxlength="255" placeholder="Short description"
-                ><?= $this->event->description ?></textarea><br><br>
-                <label for="date">Event Date</label>
-                <input name="date"
-                value="<?= $this->event->date ?>" type="date" required>
-                </input><br><br>
-                <label for="limit">max Participants</label>
-                <input type="number" name="limit"
-                value="<?= $this->event->limit ?>" type="date" min="0" max="65535" step="1" required>
-                </input>
-                <label>0 for unlimited</label><br><br>
-                <button type="Submit">Submit</button>
-            </form>
-
-            <form method="POST"
-                action="<?= config::get("URL"); ?>event/multiAcceptReservation/<?= $this->event->ID ?>">
-            <table>
-                <thead>
-                    <tr>
-                        <td>User</td>
-                        <td>accepted</td>
-                        <td>code</td>
-                        <td>accept/unaccept</td>
-                    </tr>
-                </thead>
-                    <?php foreach($this->reservations as $reservation){ ?>
-                        <tr>
-                            <td><?= $reservation->user_name ?></td>
-                            <td>
-                                <input type="checkbox" name="confirm_<?= $reservation->reservationID ?>"
-                                <?php if($reservation->confirmed) echo "checked" ?>>
-                            </td>
-                            <td><?= $reservation->code ?></td>
-                            <td><a href=
-                            "<?= config::get("URL"); ?>event/<?= $reservation->confirmed? "unaccept":"accept" ?>Reservation/<?= $reservation->reservationID?>/<?= $this->event->ID ?>">
-                                <?= $reservation->confirmed? "Unaccept":"Accept" ?>
-                            </a></td>
-                        </tr>
-                    
+        <table id="table_calender">
+            <thead>
+                <tr>
+                    <td>Mon</td>
+                    <td>Tue</td>
+                    <td>Wed</td>
+                    <td>Thu</td>
+                    <td>Fri</td>
+                    <td>Sat</td>
+                    <td>Sun</td>
+                </tr>
+            </thead>
+            <?php for($i=0;$i<$this->days["1"]->wDay;$i++) { ?>
+                <tr>
+                    <td></td>
+                <?php } foreach($this->days as $day) {
+                    if($day->wDay==0 && $day->day!=1) { ?>
+                    </tr><tr>
                     <?php } ?>
+                    <td>
+                        <Button class="<?= count($day->events)>0? "btn_event":"btn_no_event" ?>"
+                        onclick="showEvents(<?= $day->day ?>)">
+                            <!-- Always 2 digits for symmetry -->
+                            <?= str_pad($day->day, 2, "0", STR_PAD_LEFT) ?>
+                        </Button>
+                    </td>
+                <?php } ?>
+                </tr>
             </table>
-                <Button type="Submit">
-                    Apply Accept/Unaccept Checkboxes
-                </Button>
-            </form>
-        </div>
+            <div id="event_descriptions">
+            <?php foreach($this->days as $day) {
+                if(count($day->events)>0) {?>
+                    <div id="events_<?= $day->day ?>" class="calender_event_desc">
+                    <h2>Events on <?= $day->day.".".$this->month.".".$this->year ?></h2>
+                    <?php foreach($day->events as $event) { ?>
+                        <div id="desc_<?= $event->ID ?>">
+                            <a href="<?= config::get("URL"); ?>event/show/<?= $event->ID ?>">
+                                <h2><?= $event->name ?></h2>
+                            </a>
+                            <div><?= $event->description ?></div>
+                        </div>
+                    <?php } ?>
+                    </div>
+            <?php }} ?>
+            </div>
     </div>
 </div>
+
+<script>
+    function resetEvents(){
+        const descriptions = document.getElementById("event_descriptions");
+        if(!descriptions)
+            return;
+        const children = descriptions.children;
+        console.log(children);
+        [].forEach.call(children, function(child) {
+            child.style.display = 'none';
+        });
+    }
+    function showEvents(day){
+        const dayDescription = document.getElementById("events_" + day);
+        resetEvents()
+        if(!dayDescription)
+            return;
+        dayDescription.style.display = 'block';
+    }
+</script>

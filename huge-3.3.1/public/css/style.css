@@ -365,3 +365,28 @@ body {
     flex-wrap: wrap;
     justify-content: start;
 }
+
+/* Event calender styles */
+td .btn_event{
+    background-color: #98d04b;
+}
+td .btn_event:hover{
+    background-color: #608231;
+}
+td .btn_no_event{
+    background-color: #cfcfcf;
+}
+/* button stays the same color on hover, to indicate it's not clickable */
+td .btn_no_event:hover{
+    background-color: #cfcfcf;
+    color: #000000;
+}
+.calender_event_desc{
+    display: none;
+    padding: 10px;
+    padding-top: 0px;
+    border-style: solid;
+    border-color:#454545;
+    border-width: 3px;
+    border-radius: 7px;
+}
