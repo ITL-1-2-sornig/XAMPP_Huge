@@ -154,7 +154,7 @@ class EventModel
         }
 
         $result = $query->fetch();
-
+        array_walk_recursive($result, 'Filter::XSSFilter');
         $result->taken = EventModel::getEventParticipants($eventID);
 
         return $result;
@@ -192,6 +192,8 @@ class EventModel
         $events = array();
 
         foreach($query->fetchAll() as $event){
+            array_walk_recursive($event, 'Filter::XSSFilter');
+
             $events[$event->ID] = new stdClass();
             $events[$event->ID]->ID = $event->ID;
             $events[$event->ID]->name = $event->name;
