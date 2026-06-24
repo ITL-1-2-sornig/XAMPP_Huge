@@ -1,6 +1,10 @@
 # XAMPP_Huge
 ## Projekt für ITL_1_2
 
+## Verwendete externe Libraries
+- [phpqrcode](https://phpqrcode.sourceforge.net/) ([Lizenz](huge-3.3.1/application/core/phpqrcode/LICENSE))
+
+## Datenbank
 Zum erstellen der Datenbank empfiehlt es sich, die SQL-Dateien in [application/_installation](huge-3.3.1/application/_installation) auszuführen. Die Liste an SQL-Befehlen hier dient ausschließlich dazu, wenn bereits eine standardmässige huge-Datenbank aufgesetzt wurde und diese nun auf das Projekt angepasst werden soll.
 
 ## User Tabelle manuel anpassen

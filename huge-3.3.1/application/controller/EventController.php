@@ -1,5 +1,7 @@
 <?php
 
+include(dirname(__DIR__).'../core/phpqrcode/qrlib.php');
+
 class EventController extends Controller
 {
     /**
@@ -14,7 +16,11 @@ class EventController extends Controller
     public function index(){
         $year = (int)date("Y");
         $month = (int)date("m");
-
+        if(isset($_POST["year"]) && isset($_POST["year"])){
+            $year = (int)$_POST["year"];
+            $month = (int)$_POST["month"];
+        }
+        
         $this->View->render('event/index', array(
             "days"  => EventModel::GetDaysWithEvents($year, $month),
             "year"  => $year,
@@ -25,7 +31,10 @@ class EventController extends Controller
 
     public function show($eventID){
         $event = EventModel::getEvent($eventID);
-        //if(!$event)
+        if(!$event){
+            Redirect::to("event/index");
+            return;
+        }
 
         if($event->creator == Session::get('user_id'))
             $this->View->render('event/editEvent', array(
@@ -39,11 +48,24 @@ class EventController extends Controller
             ));
     }
 
+    public function checkCode($eventID){
+        if(!isset($_GET["code"])){
+            Redirect::to("event/show/".$eventID);
+            return;
+        }
+        $code = $_GET["code"];
+
+        EventModel::checkReservation($eventID, $code);
+        // Message to show wether code is valid gets handled in Model,
+        // View just recieves eventID for the link back
+        $this->View->render('event/checkCode', array(
+            "eventID" => $eventID
+        ));
+    }
+
     public function newEvent()
     {
-        $this->View->render('event/newEvent', array(
-            
-        ));
+        $this->View->render('event/newEvent');
     }
 
     public function createEvent()
@@ -90,9 +112,16 @@ class EventController extends Controller
         Redirect::to("event/show/" . $eventID);
     }
 
-    public function deleteEvent()
+    public function cancelReservation($eventID)
     {
-        
+        EventModel::cancelReservation($eventID);
+        Redirect::to("event/show/" . $eventID);
+    }
+
+    public function deleteEvent($eventID)
+    {
+        EventModel::deleteEvent($eventID);
+        Redirect::to("event/index");
     }
 
     public function acceptReservation($reservationID, $eventID)
@@ -115,6 +144,11 @@ class EventController extends Controller
 
         EventModel::multiAcceptReservation($registrationIDs, $eventID);
         Redirect::to("event/show/" . $eventID);
+    }
+
+    public function qrCode($eventID, $code){
+        $url = $_SERVER["REMOTE_ADDR"].'/event/checkCode/'.$eventID."?code=".$code;
+        QRcode::png($url);
     }
 
 }

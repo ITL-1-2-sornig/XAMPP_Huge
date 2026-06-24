@@ -81,6 +81,8 @@ return array(
     "FEEDBACK_RESERVATION_SUCCESS" => "You successfully submitted a reservation. The event host will decide wether to accept it",
     "FEEDBACK_CONFIRM_RESERVATION_PARTICIPATION_LIMIT_TO_LOW" => "Confirming reservation failed: Not enough free spaces left",
     "FEEDBACK_CONFIRM_RESERVATION_NOT_CREATOR" => "Cannot confirm this reservation as you are not the events host",
+    "FEEDBACK_CHECK_RESERVATION_NOT_CREATOR" => "Cannot check reservation code, as you are not the events host",
+    "FEEDBACK_CHECK_RESERVATION_NOT_VALID" => "Not a valid reservation code for this event",
     "FEEDBACK_UNCONFIRM_RESERVATION_NOT_CREATOR" => "Cannot unaccept this reservation as you are not the events host",
     "FEEDBACK_RESERVATION_CONFIRMATION_SUCCESS" => "Reservation has been confirmed",
     "FEEDBACK_RESERVATION_UNCONFIRM_SUCCESS" => "Reservation is no longer accepted",
@@ -90,5 +92,8 @@ return array(
     "FEEDBACK_EVENT_EDITED_FAILURE" => "Event could not be edited",
     "FEEDBACK_EVENT_DELETED_FAILURE" => "Event could not be deleted",
     "FEEDBACK_EVENT_DELETED_SUCCESS" => "Event deleted successfully",
-    
+    "FEEDBACK_EVENT_DOESNT_EXIST" => "The event you were looking for couldn't be found",
+    "FEEDBACK_RESERVATION_DELETE_FAILURE" => "Reservation not canceled, no Reservation for this event found",
+    "FEEDBACK_RESERVATION_DELETE_SUCCESS" => "Reservation canceled successfully",
+    "FEEDBACK_EVENT_DELETED_NOT_CREATOR" => "Event could not be deleted as you are not the events host"
 );  

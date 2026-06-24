@@ -9,35 +9,68 @@
         <div>
             This controller/action/view shows all events in a calender
         </div>
-        <table id="table_calender">
-            <thead>
+            <?php 
+                $dateObj   = DateTime::createFromFormat('!m', $this->month);
+                $monthName = $dateObj->format('F');
+                $nextMonthYear = $this->year;
+                $prevMonthYear = $this->year;
+                $nextMonth = $this->month +1;
+                if($nextMonth==13){
+                    $nextMonth = 1;
+                    $nextMonthYear++;
+                }
+                $prevMonth = $this->month -1;
+                if($prevMonth==0){
+                    $prevMonth = 12;
+                    $prevMonthYear--;
+                }
+
+            ?>
+            <h2><?= $monthName." ".$this->year ?></h2>
+            <div class="table_calender">
+            <table id="table_calender">
+                <thead>
+                    <tr>
+                        <td>Mon</td>
+                        <td>Tue</td>
+                        <td>Wed</td>
+                        <td>Thu</td>
+                        <td>Fri</td>
+                        <td>Sat</td>
+                        <td>Sun</td>
+                    </tr>
+                </thead>
                 <tr>
-                    <td>Mon</td>
-                    <td>Tue</td>
-                    <td>Wed</td>
-                    <td>Thu</td>
-                    <td>Fri</td>
-                    <td>Sat</td>
-                    <td>Sun</td>
-                </tr>
-            </thead>
-            <?php for($i=0;$i<$this->days["1"]->wDay;$i++) { ?>
-                <tr>
+                <?php for($i=0;$i<$this->days["1"]->wDay;$i++) { ?>
                     <td></td>
-                <?php } foreach($this->days as $day) {
-                    if($day->wDay==0 && $day->day!=1) { ?>
-                    </tr><tr>
+                    <?php } foreach($this->days as $day) {
+                        if($day->wDay==0 && $day->day!=1) { ?>
+                        </tr><tr>
+                        <?php } ?>
+                        <td>
+                            <Button class="<?= count($day->events)>0? "btn_event":"btn_no_event" ?>"
+                            onclick="showEvents(<?= $day->day ?>)">
+                                <!-- Always 2 digits for symmetry -->
+                                <?= str_pad($day->day, 2, "0", STR_PAD_LEFT) ?>
+                            </Button>
+                        </td>
                     <?php } ?>
-                    <td>
-                        <Button class="<?= count($day->events)>0? "btn_event":"btn_no_event" ?>"
-                        onclick="showEvents(<?= $day->day ?>)">
-                            <!-- Always 2 digits for symmetry -->
-                            <?= str_pad($day->day, 2, "0", STR_PAD_LEFT) ?>
-                        </Button>
-                    </td>
-                <?php } ?>
                 </tr>
             </table>
+            <div>
+                <form class="calender_previous_month" action="<?= config::get("URL"); ?>event/index" method="POST">
+                    <input name="year" value="<?= $prevMonthYear ?>" hidden></input>
+                    <input name="month" value="<?= $prevMonth ?>" hidden></input>
+                    <button type="submit">previous month</button>
+                </form>
+                <form class="calender_next_month" action="<?= config::get("URL"); ?>event/index" method="POST">
+                    <input name="year" value="<?= $nextMonthYear ?>" hidden></input>
+                    <input name="month" value="<?= $nextMonth ?>" hidden></input>
+                    <button type="submit">next month</button>
+                </form>
+            </div>
+            </div>
+            <br>
             <div id="event_descriptions">
             <?php foreach($this->days as $day) {
                 if(count($day->events)>0) {?>
@@ -54,6 +87,10 @@
                     </div>
             <?php }} ?>
             </div>
+            <br><br>
+            <form action="<?= config::get("URL"); ?>event/newEvent">
+                <Button type="submit">Create new event</Button>
+            </form>
     </div>
 </div>
 

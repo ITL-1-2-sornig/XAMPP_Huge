@@ -390,3 +390,57 @@ td .btn_no_event:hover{
     border-width: 3px;
     border-radius: 7px;
 }
+.calender_previous_month{
+    display:inline-block;
+}
+.calender_next_month{
+    float:right;
+}
+.table_calender{
+    width: min-content;
+}
+
+/* Styling to keep the froms on event edit page visually seperated */
+.event_form{
+    padding: 10px;
+    border-width: 1px;
+    border-style:solid;
+    border-left-style: dotted;
+    border-right-style: dotted;
+    border-color: #aaaaaa;
+    width: fit-content;
+}
+
+/* Event Reservation styles */
+.reservation_accepted{
+    width: fit-content;
+    padding: 5px;
+    background-color: #7ce17f;
+}
+.reservation_waiting{
+    width: fit-content;
+    padding: 5px;
+    background-color: #e0f1cf;
+}
+.no_reservation{
+    width: fit-content;
+    padding: 5px;
+    background-color: #ecedca;
+}
+.no_spaces_left{
+    width: fit-content;
+    padding: 5px;
+    background-color: #f68475;
+}
+.past_event{
+    width: fit-content;
+    padding: 5px;
+    background-color: #bebebe;
+}
+form .btn_cancel_reservation{
+    background-color: #f25a3c;
+}
+form .btn_cancel_reservation:hover{
+    background-color: #b22307;
+    color: #ffffff;
+}

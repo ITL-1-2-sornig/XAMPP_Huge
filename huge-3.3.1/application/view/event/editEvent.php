@@ -14,7 +14,7 @@
         </div>
         <div>
             <br>
-            <form method="POST" action="<?= config::get("URL"); ?>event/editEvent">
+            <form class="event_form" method="POST" action="<?= config::get("URL"); ?>event/editEvent">
                 <input type="number" name="eventID"
                 value="<?= $this->event->ID ?>" hidden required></input>
                 <label for="name">Name</label>
@@ -35,42 +35,54 @@
                 <label>0 for unlimited</label><br><br>
                 <button type="Submit">Submit</button>
             </form>
+            <br>
+            <form action="<?= config::get("URL"); ?>event/deleteEvent/<?= $this->event->ID?>">
+                <button class="btn_cancel_reservation" type="submit">Delete event</button>
+            </form>
             <br><br>
-            <?= $this->event->taken ?>
-            <!-- display limit only if there is one -->
-            <?php if($this->event->limit!=0) {?>/ <?= $this->event->limit ?> <?php } ?>
-            spaces taken
-            <?php if(count($this->reservations)!=0) { ?>
-            <form method="POST"
-                action="<?= config::get("URL"); ?>event/multiAcceptReservation/<?= $this->event->ID ?>">
-            <table id="table_reservations">
-                <thead>
-                    <tr>
-                        <td>User</td>
-                        <td>accepted</td>
-                        <td>code</td>
-                        <td>accept/unaccept</td>
-                    </tr>
-                </thead>
-                    <?php foreach($this->reservations as $reservation){ ?>
+            <div class="event_form">
+                <?= $this->event->taken ?>
+                <!-- display limit only if there is one -->
+                <?php if($this->event->limit!=0) {?>/ <?= $this->event->limit ?> <?php } ?>
+                spaces taken
+                <?php if(count($this->reservations)!=0) { ?>
+                <form method="POST"
+                    action="<?= config::get("URL"); ?>event/multiAcceptReservation/<?= $this->event->ID ?>">
+                <table id="table_reservations">
+                    <thead>
                         <tr>
-                            <td><?= $reservation->user_name ?></td>
-                            <td>
-                                <input type="checkbox" name="confirm_<?= $reservation->reservationID ?>"
-                                <?php if($reservation->confirmed) echo "checked" ?>>
-                            </td>
-                            <td><?= $reservation->code ?></td>
-                            <td><a href=
-                            "<?= config::get("URL"); ?>event/<?= $reservation->confirmed? "unaccept":"accept" ?>Reservation/<?= $reservation->reservationID?>/<?= $this->event->ID ?>">
-                                <?= $reservation->confirmed? "Unaccept":"Accept" ?>
-                            </a></td>
+                            <td>User</td>
+                            <td>accepted</td>
+                            <td>code</td>
+                            <td>accept/unaccept</td>
                         </tr>
-                    
-                    <?php } ?>
-            </table>
-                <Button type="Submit">
-                    Apply Accept/Unaccept Checkboxes
-                </Button>
+                    </thead>
+                        <?php foreach($this->reservations as $reservation){ ?>
+                            <tr>
+                                <td><?= $reservation->user_name ?></td>
+                                <td>
+                                    <input type="checkbox" name="confirm_<?= $reservation->reservationID ?>"
+                                    <?php if($reservation->confirmed) echo "checked" ?>>
+                                </td>
+                                <td><?= $reservation->code ?></td>
+                                <td><a href=
+                                "<?= config::get("URL"); ?>event/<?= $reservation->confirmed? "unaccept":"accept" ?>Reservation/<?= $reservation->reservationID?>/<?= $this->event->ID ?>">
+                                    <?= $reservation->confirmed? "Unaccept":"Accept" ?>
+                                </a></td>
+                            </tr>
+                        
+                        <?php } ?>
+                </table>
+                    <Button type="Submit">
+                        Apply Accept/Unaccept Checkboxes
+                    </Button>
+                </form>
+            </div>
+            <br><br>
+            <form class="event_form" method="GET"
+            action="<?= config::get("URL"); ?>event/checkCode/<?= $this->event->ID ?>">
+                <input name="code" placeholder="Check Code" minlength="8" maxlength="8" required></input>
+                <Button type="submit">Check</Button>
             </form>
             <?php } ?>
         </div>

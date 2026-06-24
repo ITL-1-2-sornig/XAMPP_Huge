@@ -103,6 +103,10 @@ class EventModel
      */
     public static function deleteEvent($eventID)
     {
+        if(!EventModel::eventBelongsToLoggedInUser($eventID)){
+            Session::add('feedback_negative', Text::get('FEEDBACK_EVENT_DELETED_NOT_CREATOR'));
+            return;
+        }
         $database = DatabaseFactory::getFactory()->getConnection();
         $query = $database->prepare("DELETE FROM events
         WHERE ID=:eventID AND user_creator=:user_creator");
@@ -143,6 +147,11 @@ class EventModel
         $query->execute(array(
             ":eventID" => $eventID
         ));
+
+        if($query->rowcount()==0){
+            Session::add('feedback_negative', Text::get('FEEDBACK_EVENT_DOESNT_EXIST'));
+            return null;
+        }
 
         $result = $query->fetch();
 
@@ -208,7 +217,7 @@ class EventModel
         //number of days in month
         $lastDay = cal_days_in_month(CAL_GREGORIAN,$month,$year);
         //Weekday of the first day in the month (0=mon, 6=sun)
-        $firstWeekDay = (jddayofweek((gregoriantojd($month, 1, $year))) - 1)%7;
+        $firstWeekDay = (jddayofweek((gregoriantojd($month, 1, $year))) + 6)%7;
         $start=$year."-".$month."-1";
         $end=$year."-".$month."-".$lastDay;
         $events = EventModel::GetEventsInBetween($start, $end);
@@ -217,7 +226,7 @@ class EventModel
             $days[$day] = new stdClass();
             $days[$day]->day = $day;
             $days[$day]->events = array();
-            $days[$day]->wDay = ($firstWeekDay -1 + $day)%7; 
+            $days[$day]->wDay = ($firstWeekDay +6 + $day)%7; 
         }
         foreach($events as $event){
             $day = (int)explode("-", $event->date)[2];
@@ -340,6 +349,26 @@ class EventModel
     }
 
     /**
+     * Cancel logged in users Reservation for this Event
+     *
+     * @param $eventID
+     */
+    public static function cancelReservation($eventID){
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("DELETE FROM reservations
+        WHERE event=:eventID AND user_participant=:userID");
+        $query->execute(array(
+            ":userID"   => Session::get("user_id"),
+            ":eventID"  => $eventID
+        ));
+
+        if($query->rowCount()==0)
+            Session::add('feedback_negative', Text::get('FEEDBACK_RESERVATION_DELETE_FAILURE'));
+        else
+            Session::add('feedback_positive', Text::get('FEEDBACK_RESERVATION_DELETE_SUCCESS'));
+    }
+
+    /**
      * Accept Reservation for Event hosted by logged in user
      *
      * @param $reservationID
@@ -349,14 +378,16 @@ class EventModel
         $participants = EventModel::getEventParticipants($eventID);
         $queryLimit = $database->prepare("SELECT e.participant_limit AS `limit`, e.user_creator AS creator
         FROM events AS e
-        JOIN reservations AS r WHERE r.ID=:reservationID");
+        JOIN reservations AS r
+        ON e.ID=r.event
+        WHERE r.ID=:reservationID");
         $queryLimit->execute(array(
             ":reservationID" => $reservationID,
         ));
         $event = $queryLimit->fetch();
         $limit = $event->limit;
         $creatorID = $event->creator;
-        if($limit - $participants < 1){
+        if($limit>0 && $limit - $participants < 1){
             Session::add('feedback_negative', Text::get('FEEDBACK_CONFIRM_RESERVATION_PARTICIPATION_LIMIT_TO_LOW'));
             return;
         }
@@ -472,5 +503,33 @@ class EventModel
         )); 
     }
 
+    /**
+     * Check if confirmation code is valid for a registration for this event
+     *
+     * @param $eventID
+     * @param $code
+     * 
+     */
+    public static function checkReservation($eventID, $code){
+        if(!EventModel::eventBelongsToLoggedInUser($eventID)){
+            Session::add('feedback_negative', Text::get('FEEDBACK_CHECK_RESERVATION_NOT_CREATOR'));
+            return;
+        }
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $query = $database->prepare("SELECT u.user_name AS name FROM reservations AS r
+        JOIN events AS e ON e.ID=r.event
+        JOIN users AS u ON u.user_id = r.user_participant
+        WHERE r.code=:code AND e.ID=:eventID AND r.confirmed=TRUE");
+        $query->execute(array(
+            ":code"     => $code,
+            ":eventID"  => $eventID
+        ));
+        if($query->rowCount()==0)
+            Session::add('feedback_negative', Text::get('FEEDBACK_CHECK_RESERVATION_NOT_VALID'));
+        else{
+            $name = $query->fetch()->name;
+            Session::add('feedback_positive', "Valid registration code for user $name");
+        }
+    }
     
 }
