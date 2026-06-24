@@ -375,7 +375,7 @@ class EventModel
      *
      * @param $reservationID
      */
-    public static function acceptReservation($reservationID){
+    public static function acceptReservation($reservationID, $eventID){
         $database = DatabaseFactory::getFactory()->getConnection();
         $participants = EventModel::getEventParticipants($eventID);
         $queryLimit = $database->prepare("SELECT e.participant_limit AS `limit`, e.user_creator AS creator
@@ -408,7 +408,7 @@ class EventModel
      *
      * @param $reservationID
      */
-    public static function unacceptReservation($reservationID){
+    public static function unacceptReservation($reservationID, $eventID){
         $database = DatabaseFactory::getFactory()->getConnection();
         $participants = EventModel::getEventParticipants($eventID);
         $queryLimit = $database->prepare("SELECT e.user_creator AS creator

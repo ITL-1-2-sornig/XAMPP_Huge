@@ -126,13 +126,13 @@ class EventController extends Controller
 
     public function acceptReservation($reservationID, $eventID)
     {
-        EventModel::acceptReservation($reservationID);
+        EventModel::acceptReservation($reservationID, $eventID);
         Redirect::to("event/show/" . $eventID);
     }
 
     public function unacceptReservation($reservationID, $eventID)
     {
-        EventModel::unacceptReservation($reservationID);
+        EventModel::unacceptReservation($reservationID, $eventID);
         Redirect::to("event/show/" . $eventID);
     }
 
