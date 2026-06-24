@@ -330,12 +330,11 @@ class EventModel
             ":eventID" => $eventID,
         ));
         $event = $queryLimit->fetch();
-        $limit = $event->participant_limit;
+        // $limit = $event->participant_limit;
         $creatorID = $event->user_creator;
-        if($limit>0 && $participants>=$limit){
-            Session::add('feedback_negative', Text::get('FEEDBACK_RESERVATION_PARTICIPATION_LIMIT_TO_LOW'));
-            return;
-        }
+        // if($limit>0 && $participants>=$limit){
+        //     Session::add('feedback_negative', Text::get('FEEDBACK_RESERVATION_PARTICIPATION_LIMIT_TO_LOW'));
+        // }
         if($creatorID == Session::get("user_id")){
             Session::add('feedback_negative', Text::get('FEEDBACK_OWN_EVENT_RESERVATION'));
             return;
